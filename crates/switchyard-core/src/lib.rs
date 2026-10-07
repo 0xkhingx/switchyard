@@ -309,7 +309,8 @@ pub struct ValidationError {
     pub message: String,
 }
 
-fn flag_key_valid(k: &str) -> bool {
+/// Flag keys must match `^[a-z0-9][a-z0-9._-]{0,63}$`.
+pub fn flag_key_valid(k: &str) -> bool {
     let b = k.as_bytes();
     if b.is_empty() || b.len() > 64 {
         return false;
