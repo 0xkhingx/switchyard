@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "crates/switchyard-core",
+  "crates/switchyard-server",
+  "crates/switchyard-wasm",
+]
+resolver = "2"

@@ -1,0 +1,7 @@
+/target/
+**/target/
+**/pkg/
+**/node_modules/
+.env
+.sqlx/
+dist/
