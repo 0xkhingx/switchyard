@@ -1,5 +1,7 @@
 # Switchyard
 
+![ci](https://github.com/0xkhingx/switchyard/actions/workflows/ci.yml/badge.svg)
+
 A feature flag platform in Rust. One evaluator (`switchyard-core`) runs on the
 server and — compiled to WebAssembly — inside the JavaScript SDK, so every
 client makes exactly the same decision for the same input.
@@ -45,9 +47,24 @@ node ./sdk/js/parity.mjs
 node --test sdk/js/src/client.test.js
 
 # Server (needs Postgres; Docker or hosted e.g. Supabase/Neon)
-$env:DATABASE_URL = "postgres://switchyard:switchyard@localhost:5432/switchyard"
+$env:DATABASE_URL = "postgres://switchyard:switchyard@localhost:5432/switchyard"  # PowerShell
+# export DATABASE_URL="postgres://switchyard:switchyard@localhost:5432/switchyard"  # Bash
 cargo run -p switchyard-server
 # first user: cargo run -p switchyard-server -- create-user --email you@x.com --password <8+ chars> --admin
+```
+
+## SDK usage
+
+```js
+import { createClient } from "@switchyard/sdk";
+
+const client = createClient({ sdkKey: "sy_...", baseUrl: "https://flags.example.com" });
+await client.ready(); // true if a config loaded, false if timed out (degraded)
+
+const checkout = client.boolVariation("new-checkout", { key: user.id, attributes: { country: "NG" } }, false);
+const banner = client.stringVariation("banner-text", { key: user.id }, "Welcome");
+client.on("change", (version) => console.log("config updated:", version));
+client.close(); // stops polling
 ```
 
 ## Design decisions (see `docs/DECISIONS.md`)
@@ -56,7 +73,7 @@ cargo run -p switchyard-server
 |---|---|---|
 | 1 | WASM boundary passes JSON strings | Simple, robust; `serde-wasm-bindgen` deferred until benchmarks demand it |
 | 2 | Hand-rolled murmur3, no crate | The hash is spec-frozen; a wrong crate variant would silently reassign every user |
-| 3 | `ts-rs`/`proptest`/`criterion` deferred | Data-light M1; deterministic tests cover the same properties |
+| 3 | `ts-rs`/`proptest`/`criterion` deferred | Dependency-light M1; deterministic tests cover the same properties |
 | 4 | One-transaction config edits; runtime-checked `sqlx::query` | No silent overwrites (409 on stale revision); builds work without a live DB |
 | 5 | `node:test` instead of Vitest for the SDK | Zero downloads; same behaviors covered; revisit at M4 |
 
@@ -64,7 +81,7 @@ Missing attributes never match (even `notEquals`/`notIn`); equality is
 type-strict; SDKs poll with `If-None-Match` and keep serving the last good
 config offline with capped backoff.
 
-## Benchmarks (measured on this machine, release build)
+## Benchmarks (Intel Core i5-5200U @ 2.20GHz, release build)
 
 | Path | Result |
 |---|---|
@@ -81,7 +98,17 @@ traffic says so.
 
 - [x] All vectors + property tests pass natively (`cargo test -p switchyard-core` → 13/13)
 - [x] Parity: WASM in Node identical on every vector (`parity.mjs` → 7/7)
-- [x] Server non-DB tests pass (5/5); full DB flow test written, runs with `DATABASE_URL` set
+- [x] Server non-DB tests pass (5/5)
+- [ ] Server DB flow test passes against live Postgres (`db_tests::full_flow`; runs in CI, skips without `DATABASE_URL`)
 - [x] SDK keeps serving after the server is killed (tested)
 - [ ] Demo flips live from dashboard → M4
 - [x] No secrets in repo; `.env.example` provided
+
+## Limitations and non-goals (v1)
+
+Per the spec: no experiments/metrics, scheduled flags, SSO, billing,
+multi-tenant organizations, numeric comparison operators, email delivery, or
+SDKs beyond JavaScript. Deliberately missing here until M4/M5: the dashboard
+and demo app, `ts-rs` type generation, `criterion` benches, and a deployed
+instance. The server's SQL is runtime-checked, so the DB flow test (above)
+is the gate before calling M2 done.

@@ -23,7 +23,7 @@
 - **Revisit when:** Never for v1 (frozen); only if a SIMD-accelerated path is benchmark-justified.
 - **Links:** SPEC.md §3.4, §3.6.
 
-## ADR-003 (note): Deferred to keep M1 data-light
+## ADR-003 (note): Deferred to keep M1 dependency-light
 - `ts-rs` type generation, `proptest`, and `criterion` benches move to M3/M5. Same properties are covered now by deterministic tests (including the 100k-key distribution run); the JSON vectors already execute the cross-implementation contract.
 
 ## ADR-004: Config edits in one transaction; runtime-checked SQL
@@ -32,7 +32,7 @@
 - **Reversibility:** Two-way door
 - **Context:** Two editors must not silently overwrite each other, and SDKs need one cheap version label.
 - **Decision:** `PUT` runs `SELECT ... FOR UPDATE` on the flag config, rejects stale `expectedRevision` with 409, writes the row, bumps `environments.version`, and inserts the audit row in a single transaction. Queries use `sqlx::query` (runtime-checked) so the crate builds offline without a live database; migrations are embedded with `sqlx::migrate!`.
-- **Alternatives considered:** `sqlx::query!` macros (compile-time checked — needs a live DB at every build, painful on this machine); separate revision/version counters merged into one (would make unrelated flag edits conflict).
+- **Alternatives considered:** `sqlx::query!` macros (compile-time checked — needs a live DB at every build, which keeps local builds from working offline); separate revision/version counters merged into one (would make unrelated flag edits conflict).
 - **Consequences:** Builds pass without Postgres; SQL typos surface only under a live DB test, so `db_tests::full_flow` (skipped without `DATABASE_URL`) is mandatory before calling M2 done.
 - **Revisit when:** A query bug slips past review — then reconsider `cargo sqlx prepare` with a committed `.sqlx/` cache.
 - **Links:** SPEC.md §4.3, §4.5.
@@ -41,7 +41,7 @@
 - **Date:** 2026-10-07
 - **Status:** Accepted
 - **Reversibility:** Two-way door
-- **Context:** Solo builder on metered Wi-Fi; Vitest would pull a large toolchain for what are five behavioral tests over a stub HTTP server.
+- **Context:** Keeps installs minimal — Vitest would pull a large toolchain for what are five behavioral tests over a stub HTTP server.
 - **Decision:** Plain-JS SDK tested with Node's built-in `node:test` (zero downloads); same behaviors as the spec's Vitest row (polling, ETag/304, backoff, offline, invalid-config, never-throws) plus a parity script running every vector through the real WASM build.
 - **Alternatives considered:** Vitest (nicer DX, spec's pick — migrate when the dashboard needs a shared setup).
 - **Consequences:** No watch mode or browser harness yet; web-target WASM is built and export-checked but exercised fully only in Node until the dashboard lands.

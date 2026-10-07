@@ -1,0 +1,68 @@
+# CI: Rust tests (with live Postgres), WASM build + parity, SDK tests.
+# The Rust job runs db_tests::full_flow against the service container, so the
+# DB gate ADR-004 requires is checked on every push with nothing installed locally.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+env:
+  DATABASE_URL: postgres://switchyard:switchyard@localhost:5432/switchyard
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: switchyard
+          POSTGRES_PASSWORD: switchyard
+          POSTGRES_DB: switchyard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: Swatinem/rust-cache@v2
+      - run: npm install -g wasm-pack
+      - run: wasm-pack build crates/switchyard-wasm --target nodejs --out-dir ../../sdk/js/pkg-nodejs
+      - run: wasm-pack build crates/switchyard-wasm --target web --out-dir ../../sdk/js/pkg-web
+      - run: node ./sdk/js/parity.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm-nodejs
+          path: sdk/js/pkg-nodejs/
+
+  sdk:
+    runs-on: ubuntu-latest
+    needs: wasm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-nodejs
+          path: sdk/js/pkg-nodejs/
+      - run: node --test sdk/js/src/client.test.js
