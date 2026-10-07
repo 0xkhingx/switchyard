@@ -6,5 +6,6 @@ sdk/js/pkg-web/
 .env
 .env*.local
 .next/
+__pycache__/
 .sqlx/
 dist/
