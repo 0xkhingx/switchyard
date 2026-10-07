@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: 46% 54%;
   background: #fff;
-  border-radius: 26px;
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 24px 64px -24px rgba(7, 26, 51, 0.25);
 }
@@ -35,10 +35,7 @@
 }
 
 .logo {
-  /* The lockup ships on a black background; lighten drops the black
-     against white while keeping the blue/navy artwork intact. */
-  mix-blend-mode: lighten;
-  height: 44px;
+  height: 56px;
   width: auto;
   display: block;
 }
@@ -103,6 +100,14 @@
 
 .input::placeholder {
   color: #94a3b8;
+}
+
+/* Browsers paint autofilled fields pale blue, which reads as disabled.
+   Keep our own white field + border while leaving the manager functional. */
+.input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px #fff inset;
+  -webkit-text-fill-color: var(--navy);
+  caret-color: var(--navy);
 }
 
 .input:hover {
@@ -175,7 +180,7 @@
   color: #fff;
   background: var(--accent);
   border: none;
-  border-radius: 11px;
+  border-radius: 10px;
   cursor: pointer;
   transition: background-color 175ms ease, box-shadow 175ms ease;
 }
@@ -201,14 +206,14 @@
 .divider {
   margin: 28px 0 0;
   border: none;
-  border-top: 1px solid #e6edf4;
+  border-top: 1px solid #dbe4ee;
 }
 
 .helper {
   margin: 16px 0 0;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--muted);
+  color: #475569;
 }
 
 /* ---- Right: art side ---- */
@@ -253,6 +258,14 @@
 }
 
 /* ---- Responsive ---- */
+
+@media (min-width: 900px) {
+  /* Optical nudge: the group reads better sitting a touch above
+     mathematical center once the logo anchors the top. */
+  .formInner {
+    transform: translateY(-14px);
+  }
+}
 
 @media (max-width: 899px) {
   .card {

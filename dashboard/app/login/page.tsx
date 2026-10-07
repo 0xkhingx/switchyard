@@ -16,8 +16,8 @@ export default function LoginPage() {
             <Image
               src="/logo-lockup.png"
               alt="Switchyard"
-              width={220}
-              height={48}
+              width={260}
+              height={73}
               priority
               className={styles.logo}
             />
