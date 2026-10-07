@@ -3,6 +3,13 @@
 import type { Env, Project } from "@/lib/api";
 import styles from "./TopBar.module.css";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+async function signOut() {
+  await fetch(`${API_URL}/api/auth/logout`, { method: "POST", credentials: "include" });
+  window.location.href = "/login";
+}
+
 export function TopBar({
   projects,
   projectKey,
@@ -83,9 +90,15 @@ export function TopBar({
         <button type="button" className={styles.kbd} title="Command palette (coming soon)" disabled>
           ⌘ K
         </button>
-        <span className={styles.userAvatar} aria-label="Signed-in user">
+        <button
+          type="button"
+          className={styles.userAvatar}
+          title="Sign out"
+          aria-label="Sign out"
+          onClick={() => void signOut()}
+        >
           {userInitials}
-        </span>
+        </button>
       </div>
     </header>
   );

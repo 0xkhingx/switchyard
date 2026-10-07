@@ -43,7 +43,7 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       if (res.ok) {
-        window.location.href = "/";
+        window.location.href = "/flags";
         return;
       }
       // Any failure reads the same: never reveal whether the email exists.

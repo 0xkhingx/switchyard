@@ -100,7 +100,14 @@
   font-weight: 700;
   color: var(--navy);
   background: #dbe6f5;
+  border: none;
   border-radius: 50%;
+  cursor: pointer;
+}
+
+.userAvatar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .hamburger {
