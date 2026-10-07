@@ -4,5 +4,7 @@ sdk/js/pkg-nodejs/
 sdk/js/pkg-web/
 **/node_modules/
 .env
+.env*.local
+.next/
 .sqlx/
 dist/
