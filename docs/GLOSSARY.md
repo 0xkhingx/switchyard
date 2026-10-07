@@ -25,3 +25,8 @@
 - **ETag**: a version label (`"v7"`) the server sends with data; the client echoes it back and gets `304 Not Modified` when nothing changed.
 - **Revision**: a per-flag edit counter; sending a stale one gets `409 Conflict` so two editors can't silently overwrite each other.
 - **Audit log**: an append-only diary of who changed what, with before/after snapshots.
+
+## SDK
+- **Polling**: the SDK re-asking the server for the config every few seconds, sending its ETag so unchanged configs cost one `304` instead of a full download.
+- **Backoff with jitter**: after a failed fetch, waiting longer each time (up to 60s) plus a random nudge, so a recovering server isn't hammered all at once.
+- **Parity**: proof that the WASM Engine returns byte-identical results to native Rust on every test vector.

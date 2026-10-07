@@ -36,3 +36,14 @@
 - **Consequences:** Builds pass without Postgres; SQL typos surface only under a live DB test, so `db_tests::full_flow` (skipped without `DATABASE_URL`) is mandatory before calling M2 done.
 - **Revisit when:** A query bug slips past review — then reconsider `cargo sqlx prepare` with a committed `.sqlx/` cache.
 - **Links:** SPEC.md §4.3, §4.5.
+
+## ADR-005: SDK tests run on node:test, not Vitest
+- **Date:** 2026-10-07
+- **Status:** Accepted
+- **Reversibility:** Two-way door
+- **Context:** Solo builder on metered Wi-Fi; Vitest would pull a large toolchain for what are five behavioral tests over a stub HTTP server.
+- **Decision:** Plain-JS SDK tested with Node's built-in `node:test` (zero downloads); same behaviors as the spec's Vitest row (polling, ETag/304, backoff, offline, invalid-config, never-throws) plus a parity script running every vector through the real WASM build.
+- **Alternatives considered:** Vitest (nicer DX, spec's pick — migrate when the dashboard needs a shared setup).
+- **Consequences:** No watch mode or browser harness yet; web-target WASM is built and export-checked but exercised fully only in Node until the dashboard lands.
+- **Revisit when:** M4 dashboard work starts.
+- **Links:** SPEC.md §6, §8.

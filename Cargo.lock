@@ -1675,6 +1675,7 @@ name = "switchyard-wasm"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+ "switchyard-core",
  "wasm-bindgen",
 ]
 

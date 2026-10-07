@@ -1,8 +1,13 @@
 {
-  "name": "spike",
+  "name": "@switchyard/sdk",
   "version": "0.1.0",
   "type": "module",
+  "description": "Switchyard JavaScript SDK: local evaluation over the WASM engine with polling updates",
+  "main": "./src/client.js",
   "scripts": {
-    "spike": "node spike.mjs"
-  }
+    "test": "node --test src/client.test.js",
+    "parity": "node ../parity.mjs",
+    "spike": "node ../spike.mjs"
+  },
+  "license": "MIT"
 }
