@@ -239,33 +239,35 @@ mod db_tests {
         let cookie = client.last_set_cookie.clone().expect("session cookie");
         assert!(me["id"].as_str().is_some());
 
-        // create project (creator becomes admin)
+        // create project (creator becomes admin); unique key per run so the
+        // test is repeatable against a persistent database.
+        let pkey = format!("p1-{}", &Uuid::new_v4().simple().to_string()[..8]);
         let proj: serde_json::Value = client
-            .post_cookie("/api/projects", &cookie, &serde_json::json!({"key": "p1", "name": "P1"}))
+            .post_cookie("/api/projects", &cookie, &serde_json::json!({"key": pkey, "name": "P1"}))
             .await;
-        assert_eq!(proj["key"], "p1");
+        assert_eq!(proj["key"], pkey.as_str());
 
         // create environment + flag
         let env: serde_json::Value = client
-            .post_cookie("/api/projects/p1/environments", &cookie, &serde_json::json!({"key": "prod", "name": "Prod"}))
+            .post_cookie(&format!("/api/projects/{pkey}/environments"), &cookie, &serde_json::json!({"key": "prod", "name": "Prod"}))
             .await;
         assert_eq!(env["version"], 1);
         let flag: serde_json::Value = client
-            .post_cookie("/api/projects/p1/flags", &cookie, &serde_json::json!({"key": "new-checkout", "type": "bool"}))
+            .post_cookie(&format!("/api/projects/{pkey}/flags"), &cookie, &serde_json::json!({"key": "new-checkout", "type": "bool"}))
             .await;
         assert_eq!(flag["key"], "new-checkout");
         // creating the flag bumped the env version 1 -> 2
-        let envs: serde_json::Value = client.get_cookie("/api/projects/p1/environments", &cookie).await;
+        let envs: serde_json::Value = client.get_cookie(&format!("/api/projects/{pkey}/environments"), &cookie).await;
         assert_eq!(envs[0]["version"], 2);
 
         // read config (revision 1), then update with the right revision
         let cfg: serde_json::Value = client
-            .get_cookie("/api/projects/p1/environments/prod/flags/new-checkout", &cookie)
+            .get_cookie(&format!("/api/projects/{pkey}/environments/prod/flags/new-checkout"), &cookie)
             .await;
         assert_eq!(cfg["revision"], 1);
         let upd: serde_json::Value = client
             .put_cookie(
-                "/api/projects/p1/environments/prod/flags/new-checkout",
+                &format!("/api/projects/{pkey}/environments/prod/flags/new-checkout"),
                 &cookie,
                 &serde_json::json!({
                     "expectedRevision": 1, "enabled": true, "offValue": false,
@@ -281,7 +283,7 @@ mod db_tests {
         // stale revision -> 409
         let (status, _) = client
             .put_cookie_raw(
-                "/api/projects/p1/environments/prod/flags/new-checkout",
+                &format!("/api/projects/{pkey}/environments/prod/flags/new-checkout"),
                 &cookie,
                 &serde_json::json!({
                     "expectedRevision": 1, "enabled": true, "offValue": false,
@@ -293,7 +295,7 @@ mod db_tests {
         // invalid config -> 422 with path list
         let (status, body) = client
             .put_cookie_raw(
-                "/api/projects/p1/environments/prod/flags/new-checkout",
+                &format!("/api/projects/{pkey}/environments/prod/flags/new-checkout"),
                 &cookie,
                 &serde_json::json!({
                     "expectedRevision": 2, "enabled": true, "offValue": false,
@@ -307,13 +309,13 @@ mod db_tests {
 
         // audit has rows, newest first
         let audit: serde_json::Value =
-            client.get_cookie("/api/projects/p1/audit?limit=5", &cookie).await;
+            client.get_cookie(&format!("/api/projects/{pkey}/audit?limit=5"), &cookie).await;
         assert!(audit.as_array().unwrap().len() >= 2);
         assert_eq!(audit[0]["action"], "config.update");
 
         // sdk key -> config with ETag, then 304
         let created: serde_json::Value = client
-            .post_cookie("/api/projects/p1/environments/prod/sdk-keys", &cookie, &serde_json::json!({"name": "k1"}))
+            .post_cookie(&format!("/api/projects/{pkey}/environments/prod/sdk-keys"), &cookie, &serde_json::json!({"name": "k1"}))
             .await;
         let sdk_key = created["key"].as_str().unwrap().to_string();
         let (etag, body) = client.sdk_config(&sdk_key, None).await;
@@ -326,11 +328,24 @@ mod db_tests {
         // revoked key -> 401 on sdk endpoint
         let kid = created["id"].as_str().unwrap();
         let (status, _) = client
-            .delete_cookie(&format!("/api/projects/p1/environments/prod/sdk-keys/{kid}"), &cookie)
+            .delete_cookie(&format!("/api/projects/{pkey}/environments/prod/sdk-keys/{kid}"), &cookie)
             .await;
         assert_eq!(status, 204);
         let (status, _) = client.sdk_config_raw(&sdk_key, None).await;
         assert_eq!(status, 401);
+
+        // sdk key lifecycle left audit rows, newest first
+        let audit2: serde_json::Value = client
+            .get_cookie(&format!("/api/projects/{pkey}/audit?limit=3"), &cookie)
+            .await;
+        let actions: Vec<&str> = audit2
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|a| a["action"].as_str().unwrap())
+            .collect();
+        assert!(actions.contains(&"sdk-key.revoke"));
+        assert!(actions.contains(&"sdk-key.create"));
     }
 
     // Minimal in-process HTTP client over the router (no network socket).

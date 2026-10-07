@@ -37,6 +37,16 @@ export const apiPatch = <T,>(path: string, body: unknown) =>
 export const apiDelete = (path: string) =>
   request<void>(path, { method: "DELETE" });
 
+/** GET returning { data, total } via the X-Total-Count header (audit list). */
+export async function apiGetPaged<T>(path: string): Promise<{ data: T; total: number }> {
+  const res = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new ApiError(res.status, (body && body.error) || `Request failed (${res.status})`);
+  }
+  return { data: body as T, total: Number(res.headers.get("x-total-count") ?? 0) };
+}
+
 // --- Shapes (mirror the server's JSON) ---
 
 export interface Me {

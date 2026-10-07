@@ -10,7 +10,7 @@ use axum::{
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::{PgPool, Postgres, QueryBuilder, Transaction};
 use switchyard_core::{
     Context, EnvConfig, Evaluation, FlagConfig, FlagType, Rule, Serve,
     Variant, evaluate, flag_key_valid, validate,
@@ -883,6 +883,7 @@ pub async fn create_sdk_key(
     let env = resolve_env(&state.pool, project_id, &e).await?;
     let (full, hash, prefix) = auth::new_sdk_key();
     let id = Uuid::new_v4();
+    let mut tx = state.pool.begin().await.map_err(ApiError::internal)?;
     let created: DateTime<Utc> = sqlx::query_as::<_, (DateTime<Utc>,)>(
         "INSERT INTO sdk_keys (id, environment_id, name, prefix, key_hash) VALUES ($1, $2, $3, $4, $5) RETURNING created_at",
     )
@@ -891,10 +892,22 @@ pub async fn create_sdk_key(
     .bind(&body.name)
     .bind(&prefix)
     .bind(&hash)
-    .fetch_one(&state.pool)
+    .fetch_one(&mut *tx)
     .await
     .map_err(ApiError::internal)?
     .0;
+    insert_audit(
+        &mut tx,
+        project_id,
+        Some(env.id),
+        None,
+        user.id,
+        "sdk-key.create",
+        None,
+        Some(&serde_json::json!({"name": body.name, "prefix": prefix})),
+    )
+    .await?;
+    tx.commit().await.map_err(ApiError::internal)?;
     Ok((
         StatusCode::CREATED,
         Json(SdkKeyCreated {
@@ -913,18 +926,28 @@ pub async fn delete_sdk_key(
     let (project_id, _) = resolve_project(&state.pool, &p).await?;
     rbac::require_role(&state.pool, user.id, project_id, Role::Admin).await?;
     let env = resolve_env(&state.pool, project_id, &e).await?;
-    let n = sqlx::query(
-        "UPDATE sdk_keys SET revoked_at = now() WHERE id = $1 AND environment_id = $2 AND revoked_at IS NULL",
+    let mut tx = state.pool.begin().await.map_err(ApiError::internal)?;
+    let row: Option<(String,)> = sqlx::query_as(
+        "UPDATE sdk_keys SET revoked_at = now() WHERE id = $1 AND environment_id = $2 AND revoked_at IS NULL RETURNING name",
     )
     .bind(id)
     .bind(env.id)
-    .execute(&state.pool)
+    .fetch_optional(&mut *tx)
     .await
-    .map_err(ApiError::internal)?
-    .rows_affected();
-    if n == 0 {
-        return Err(ApiError::NotFound("sdk key not found".into()));
-    }
+    .map_err(ApiError::internal)?;
+    let (name,) = row.ok_or_else(|| ApiError::NotFound("sdk key not found".into()))?;
+    insert_audit(
+        &mut tx,
+        project_id,
+        Some(env.id),
+        None,
+        user.id,
+        "sdk-key.revoke",
+        None,
+        Some(&serde_json::json!({"name": name})),
+    )
+    .await?;
+    tx.commit().await.map_err(ApiError::internal)?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -1026,6 +1049,75 @@ pub async fn add_member(
 pub struct AuditQuery {
     pub limit: Option<i64>,
     pub offset: Option<i64>,
+    pub environment_id: Option<Uuid>,
+    pub flag_key: Option<String>,
+    /// Display category: created, updated, enabled, disabled, archived,
+    /// sdk_key_created, sdk_key_revoked. Unknown values are ignored.
+    pub category: Option<String>,
+    pub actor: Option<String>,
+    pub since: Option<DateTime<Utc>>,
+    pub q: Option<String>,
+}
+
+/// Push the shared WHERE clause for audit listing + counting.
+fn audit_filters(
+    qb: &mut sqlx::QueryBuilder<'_, Postgres>,
+    project_id: Uuid,
+    q: &AuditQuery,
+) {
+    qb.push("a.project_id = ");
+    qb.push_bind(project_id);
+    if let Some(env_id) = q.environment_id {
+        qb.push(" AND a.environment_id = ");
+        qb.push_bind(env_id);
+    }
+    if let Some(flag) = &q.flag_key {
+        qb.push(" AND a.flag_key = ");
+        qb.push_bind(flag.clone());
+    }
+    if let Some(actor) = &q.actor {
+        qb.push(" AND u.email = ");
+        qb.push_bind(actor.clone());
+    }
+    if let Some(since) = q.since {
+        qb.push(" AND a.created_at >= ");
+        qb.push_bind(since);
+    }
+    if let Some(term) = &q.q {
+        qb.push(" AND (a.flag_key ILIKE ");
+        qb.push_bind(format!("%{term}%"));
+        qb.push(" OR a.action ILIKE ");
+        qb.push_bind(format!("%{term}%"));
+        qb.push(" OR u.email ILIKE ");
+        qb.push_bind(format!("%{term}%"));
+        qb.push(")");
+    }
+    // Display categories derived from the stored action + before/after.
+    // Enabled/disabled are config updates whose enabled flag flipped.
+    match q.category.as_deref() {
+        Some("created") => {
+            qb.push(" AND a.action IN ('flag.create','environment.create')");
+        }
+        Some("updated") => {
+            qb.push(" AND (a.action = 'flag.unarchive' OR (a.action = 'config.update' AND NOT ((a.before->>'enabled')::boolean IS DISTINCT FROM (a.after->>'enabled')::boolean)))");
+        }
+        Some("enabled") => {
+            qb.push(" AND a.action = 'config.update' AND (a.before->>'enabled')::boolean IS FALSE AND (a.after->>'enabled')::boolean IS TRUE");
+        }
+        Some("disabled") => {
+            qb.push(" AND a.action = 'config.update' AND (a.before->>'enabled')::boolean IS TRUE AND (a.after->>'enabled')::boolean IS FALSE");
+        }
+        Some("archived") => {
+            qb.push(" AND a.action = 'flag.archive'");
+        }
+        Some("sdk_key_created") => {
+            qb.push(" AND a.action = 'sdk-key.create'");
+        }
+        Some("sdk_key_revoked") => {
+            qb.push(" AND a.action = 'sdk-key.revoke'");
+        }
+        _ => {}
+    }
 }
 
 #[derive(Serialize)]
@@ -1045,29 +1137,66 @@ pub async fn list_audit(
     user: AuthUser,
     Path(p): Path<String>,
     Query(q): Query<AuditQuery>,
-) -> Result<Json<Vec<AuditBody>>, ApiError> {
+) -> Result<Response, ApiError> {
     let (project_id, _) = resolve_project(&state.pool, &p).await?;
     rbac::require_role(&state.pool, user.id, project_id, Role::Viewer).await?;
     let limit = q.limit.unwrap_or(50).clamp(1, 200);
     let offset = q.offset.unwrap_or(0).max(0);
-    let rows: Vec<(i64, Option<Uuid>, Option<String>, Option<String>, String, Option<JsonValue>, Option<JsonValue>, DateTime<Utc>)> =
-        sqlx::query_as(
-            "SELECT a.id, a.environment_id, a.flag_key, u.email, a.action, a.before, a.after, a.created_at
-             FROM audit_log a LEFT JOIN users u ON u.id = a.actor_id
-             WHERE a.project_id = $1 ORDER BY a.id DESC LIMIT $2 OFFSET $3",
-        )
-        .bind(project_id)
-        .bind(limit)
-        .bind(offset)
+
+    let mut count_qb: QueryBuilder<'_, Postgres> = QueryBuilder::new(
+        "SELECT COUNT(*) FROM audit_log a LEFT JOIN users u ON u.id = a.actor_id WHERE ",
+    );
+    audit_filters(&mut count_qb, project_id, &q);
+    let (total,): (i64,) = count_qb
+        .build_query_as()
+        .fetch_one(&state.pool)
+        .await
+        .map_err(ApiError::internal)?;
+
+    let mut qb: QueryBuilder<'_, Postgres> = QueryBuilder::new(
+        "SELECT a.id, a.environment_id, a.flag_key, u.email, a.action, a.before, a.after, a.created_at
+         FROM audit_log a LEFT JOIN users u ON u.id = a.actor_id WHERE ",
+    );
+    audit_filters(&mut qb, project_id, &q);
+    qb.push(" ORDER BY a.id DESC LIMIT ");
+    qb.push_bind(limit);
+    qb.push(" OFFSET ");
+    qb.push_bind(offset);
+    let rows: Vec<(
+        i64,
+        Option<Uuid>,
+        Option<String>,
+        Option<String>,
+        String,
+        Option<JsonValue>,
+        Option<JsonValue>,
+        DateTime<Utc>,
+    )> = qb
+        .build_query_as()
         .fetch_all(&state.pool)
         .await
         .map_err(ApiError::internal)?;
-    Ok(Json(
-        rows.into_iter()
-            .map(|(id, environment_id, flag_key, actor_email, action, before, after, created_at)| AuditBody {
-                id, environment_id, flag_key, actor_email, action, before, after, created_at,
-            })
-            .collect(),
+    let body = rows
+        .into_iter()
+        .map(
+            |(id, environment_id, flag_key, actor_email, action, before, after, created_at)| {
+                AuditBody {
+                    id,
+                    environment_id,
+                    flag_key,
+                    actor_email,
+                    action,
+                    before,
+                    after,
+                    created_at,
+                }
+            },
+        )
+        .collect::<Vec<_>>();
+    Ok(json_response(
+        StatusCode::OK,
+        &serde_json::to_value(&body).map_err(ApiError::internal)?,
+        &[(header::HeaderName::from_static("x-total-count"), total.to_string())],
     ))
 }
 
