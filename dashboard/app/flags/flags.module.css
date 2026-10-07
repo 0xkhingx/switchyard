@@ -1,0 +1,502 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--page-bg);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 32px 32px;
+}
+
+.content {
+  max-width: 1240px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Page header */
+.pageHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 10px 0 20px;
+  flex-wrap: wrap;
+}
+
+.pageHead h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.pageHead p {
+  margin: 6px 0 0;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+
+.createButton {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 175ms ease;
+}
+
+.createButton:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.createButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.createButton:disabled {
+  background: #93bcfb;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  height: 44px;
+  padding: 0 20px;
+  margin-top: 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.secondaryButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: 0 14px;
+  color: var(--muted);
+}
+
+.searchWrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18);
+}
+
+.searchWrap input {
+  flex: 1;
+  height: 44px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14.5px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.filterWrap select {
+  height: 44px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-control);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.filterWrap select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+
+/* Table card */
+.card {
+  background: #fff;
+  border: 1px solid #e6edf4;
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px -16px rgba(7, 26, 51, 0.18);
+  padding: 8px 20px 16px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 14px 12px;
+  border-bottom: 1px solid #e6edf4;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #eef3f8;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.row {
+  cursor: pointer;
+}
+
+.row:hover {
+  background: #f6f9fc;
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.cellName strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.cellDesc {
+  color: var(--muted);
+  max-width: 320px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cellUpdated {
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.cellUpdated small {
+  display: block;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+/* Row menu */
+.menuWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.dotsButton {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dotsButton:hover {
+  background: #eef3f8;
+  color: var(--text);
+}
+
+.dotsButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 150px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -12px rgba(7, 26, 51, 0.3);
+  padding: 6px;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: #eef3f8;
+}
+
+.menuItem:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Stacked cards (narrow screens) */
+.cards {
+  display: none;
+}
+
+/* Modal form fields (create modal) */
+.modalError {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--error);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+
+.modalField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modalField label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modalField input,
+.modalField select {
+  height: 46px;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--text);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 11px;
+  outline: none;
+  width: 100%;
+}
+
+.modalField input:focus-visible,
+.modalField select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18);
+}
+
+.modalField input[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+.modalFieldError {
+  margin: 0;
+  font-size: 13px;
+  color: var(--error);
+}
+
+.modalHint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.cancelButton {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.confirmButton {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.cancelButton:focus-visible,
+.confirmButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.confirmButton:disabled {
+  background: #93bcfb;
+  cursor: not-allowed;
+}
+
+/* Detail page extras */
+.backLink {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.envRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #eef3f8;
+}
+
+.envRow:last-child {
+  border-bottom: none;
+}
+
+.envMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.envMeta small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+@media (max-width: 1023px) {
+  .main {
+    padding: 6px 20px 24px;
+  }
+}
+
+@media (max-width: 719px) {
+  .table {
+    display: none;
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0 4px;
+  }
+
+  .flagCard {
+    border: 1px solid #e6edf4;
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+
+  .flagCardTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .flagCardTop strong {
+    color: var(--text);
+    overflow-wrap: anywhere;
+  }
+
+  .flagCardDesc {
+    margin: 8px 0 0;
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .flagCardMeta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+
+  .main {
+    padding: 6px 16px 20px;
+  }
+}

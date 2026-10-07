@@ -652,6 +652,8 @@ pub struct FlagConfigBody {
     pub off_value: Variant,
     pub rules: Vec<Rule>,
     pub fallthrough: Serve,
+    pub updated_at: DateTime<Utc>,
+    pub updated_by: Option<Uuid>,
 }
 
 pub async fn get_flag_config(
@@ -663,8 +665,8 @@ pub async fn get_flag_config(
     rbac::require_role(&state.pool, user.id, project_id, Role::Viewer).await?;
     let env = resolve_env(&state.pool, project_id, &e).await?;
     let (flag_id, _) = resolve_flag(&state.pool, project_id, &key).await?;
-    let row: Option<(bool, JsonValue, JsonValue, JsonValue, i64)> = sqlx::query_as(
-        "SELECT enabled, off_value, rules, fallthrough, revision FROM flag_configs
+    let row: Option<(bool, JsonValue, JsonValue, JsonValue, i64, DateTime<Utc>, Option<Uuid>)> = sqlx::query_as(
+        "SELECT enabled, off_value, rules, fallthrough, revision, updated_at, updated_by FROM flag_configs
          WHERE flag_id = $1 AND environment_id = $2",
     )
     .bind(flag_id)
@@ -672,7 +674,7 @@ pub async fn get_flag_config(
     .fetch_optional(&state.pool)
     .await
     .map_err(ApiError::internal)?;
-    let (enabled, off_value, rules, fallthrough, revision) =
+    let (enabled, off_value, rules, fallthrough, revision, updated_at, updated_by) =
         row.ok_or_else(|| ApiError::NotFound("config not found".into()))?;
     Ok(Json(FlagConfigBody {
         revision,
@@ -680,6 +682,8 @@ pub async fn get_flag_config(
         off_value: serde_json::from_value(off_value).map_err(ApiError::internal)?,
         rules: serde_json::from_value(rules).map_err(ApiError::internal)?,
         fallthrough: serde_json::from_value(fallthrough).map_err(ApiError::internal)?,
+        updated_at,
+        updated_by,
     }))
 }
 
@@ -930,6 +934,7 @@ pub async fn delete_sdk_key(
 
 #[derive(Serialize)]
 pub struct MemberBody {
+    pub id: Uuid,
     pub email: String,
     pub role: String,
 }
@@ -941,8 +946,8 @@ pub async fn list_members(
 ) -> Result<Json<Vec<MemberBody>>, ApiError> {
     let (project_id, _) = resolve_project(&state.pool, &p).await?;
     rbac::require_role(&state.pool, user.id, project_id, Role::Viewer).await?;
-    let rows: Vec<(String, String)> = sqlx::query_as(
-        "SELECT u.email, m.role FROM memberships m JOIN users u ON u.id = m.user_id
+    let rows: Vec<(Uuid, String, String)> = sqlx::query_as(
+        "SELECT u.id, u.email, m.role FROM memberships m JOIN users u ON u.id = m.user_id
          WHERE m.project_id = $1 ORDER BY u.email",
     )
     .bind(project_id)
@@ -950,7 +955,7 @@ pub async fn list_members(
     .await
     .map_err(ApiError::internal)?;
     Ok(Json(
-        rows.into_iter().map(|(email, role)| MemberBody { email, role }).collect(),
+        rows.into_iter().map(|(id, email, role)| MemberBody { id, email, role }).collect(),
     ))
 }
 
@@ -1010,7 +1015,7 @@ pub async fn add_member(
     .await
     .map_err(ApiError::internal)?;
     tx.commit().await.map_err(ApiError::internal)?;
-    Ok(Json(MemberBody { email, role: role.as_str().to_string() }))
+    Ok(Json(MemberBody { id: user_id, email, role: role.as_str().to_string() }))
 }
 
 // ---------------------------------------------------------------------------

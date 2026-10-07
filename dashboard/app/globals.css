@@ -8,6 +8,11 @@
   --border: #d8e1ec;
   --muted: #64748b;
   --error: #c81e1e;
+  --text: #0f1f36;
+  --success: #16a36a;
+  --radius-card: 20px;
+  --radius-control: 10px;
+  --sidebar-w: 260px;
 }
 
 * {
