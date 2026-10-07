@@ -1,0 +1,166 @@
+{
+  "config": {
+    "version": 7,
+    "flags": {
+      "new-checkout": {
+        "type": "bool",
+        "enabled": true,
+        "offValue": false,
+        "rules": [
+          {
+            "id": "r1",
+            "conditions": [
+              {
+                "attribute": "country",
+                "op": "in",
+                "values": [
+                  "NG",
+                  "GH"
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": true
+            }
+          },
+          {
+            "id": "r2",
+            "conditions": [
+              {
+                "attribute": "plan",
+                "op": "equals",
+                "values": [
+                  "pro"
+                ]
+              }
+            ],
+            "serve": {
+              "rollout": [
+                {
+                  "value": true,
+                  "weight": 2000
+                },
+                {
+                  "value": false,
+                  "weight": 8000
+                }
+              ]
+            }
+          }
+        ],
+        "fallthrough": {
+          "fixed": false
+        }
+      },
+      "banner-text": {
+        "type": "string",
+        "enabled": false,
+        "offValue": "Welcome",
+        "rules": [],
+        "fallthrough": {
+          "fixed": "Spring sale"
+        }
+      }
+    }
+  },
+  "cases": [
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "country": "NG"
+        }
+      },
+      "expected": {
+        "value": true,
+        "reason": "RULE_MATCH",
+        "ruleId": "r1"
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-2",
+        "attributes": {
+          "country": "US",
+          "plan": "pro"
+        }
+      },
+      "expected": {
+        "value": true,
+        "reason": "RULE_MATCH",
+        "ruleId": "r2"
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-3",
+        "attributes": {
+          "country": "US",
+          "plan": "pro"
+        }
+      },
+      "expected": {
+        "value": false,
+        "reason": "RULE_MATCH",
+        "ruleId": "r2"
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-4",
+        "attributes": {
+          "country": "US",
+          "plan": "free"
+        }
+      },
+      "expected": {
+        "value": false,
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "",
+        "attributes": {
+          "country": "US",
+          "plan": "pro"
+        }
+      },
+      "expected": {
+        "value": false,
+        "reason": "ERROR",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "banner-text",
+      "context": {
+        "key": "u-1",
+        "attributes": {}
+      },
+      "expected": {
+        "value": "Welcome",
+        "reason": "OFF",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "nope",
+      "context": {
+        "key": "u-1",
+        "attributes": {}
+      },
+      "expected": {
+        "value": null,
+        "reason": "FLAG_NOT_FOUND",
+        "ruleId": null
+      }
+    }
+  ]
+}

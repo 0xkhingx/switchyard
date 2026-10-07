@@ -1,0 +1,11 @@
+{
+  "flag": "new-checkout",
+  "total": 100000,
+  "prefix": "user-",
+  "threshold": 2000,
+  "share": 0.19829,
+  "min_share": 0.19,
+  "max_share": 0.21,
+  "sticky_from": 2000,
+  "sticky_to": 3000
+}

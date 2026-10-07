@@ -1,0 +1,14 @@
+[
+  {
+    "input": "",
+    "hash": 0
+  },
+  {
+    "input": "hello",
+    "hash": 613153351
+  },
+  {
+    "input": "The quick brown fox jumps over the lazy dog",
+    "hash": 776992547
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "flag": "new-checkout",
+  "vectors": [
+    {
+      "key": "u-1",
+      "bucket": 9373
+    },
+    {
+      "key": "u-2",
+      "bucket": 322
+    },
+    {
+      "key": "u-3",
+      "bucket": 6066
+    },
+    {
+      "key": "u-4",
+      "bucket": 7192
+    },
+    {
+      "key": "u-5",
+      "bucket": 1826
+    },
+    {
+      "key": "u-6",
+      "bucket": 8222
+    },
+    {
+      "key": "u-7",
+      "bucket": 6635
+    },
+    {
+      "key": "u-8",
+      "bucket": 227
+    }
+  ]
+}
