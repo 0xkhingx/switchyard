@@ -99,7 +99,7 @@ traffic says so.
 - [x] All vectors + property tests pass natively (`cargo test -p switchyard-core` → 13/13)
 - [x] Parity: WASM in Node identical on every vector (`parity.mjs` → 7/7)
 - [x] Server non-DB tests pass (5/5)
-- [ ] Server DB flow test passes against live Postgres (`db_tests::full_flow`; runs in CI, skips without `DATABASE_URL`)
+- [x] Server DB flow test passes against live Postgres (`db_tests::full_flow` on a Neon branch; also runs in CI)
 - [x] SDK keeps serving after the server is killed (tested)
 - [ ] Demo flips live from dashboard → M4
 - [x] No secrets in repo; `.env.example` provided
