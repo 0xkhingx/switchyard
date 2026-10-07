@@ -165,12 +165,11 @@ export function DetailClient({ flagKey }: { flagKey: string }) {
     }
   }
 
-  const project = projects.find((p) => p.key === projectKey);
   const initials = (me?.email || "?").slice(0, 2).toUpperCase();
 
   return (
     <div className={styles.shell}>
-      <Sidebar projectName={project?.name ?? "…"} open={navOpen} onClose={() => setNavOpen(false)} />
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
       <div className={styles.main}>
         <TopBar
           projects={projects}

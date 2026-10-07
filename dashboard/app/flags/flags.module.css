@@ -130,6 +130,17 @@
   min-width: 0;
 }
 
+.searchWrap input:disabled,
+.filterWrap select:disabled {
+  cursor: not-allowed;
+}
+
+.searchWrap:has(input:disabled),
+.filterWrap select:disabled {
+  opacity: 0.6;
+  background: #f1f5f9;
+}
+
 .filterWrap select {
   height: 44px;
   background: #fff;

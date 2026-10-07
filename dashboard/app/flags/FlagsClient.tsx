@@ -324,16 +324,11 @@ export function FlagsClient() {
     router.push(`/flags/${encodeURIComponent(flagKey)}?${sp.toString()}`);
   }
 
-  const project = projects.find((p) => p.key === projectKey);
   const initials = (me?.email || "?").slice(0, 2).toUpperCase();
 
   return (
     <div className={styles.shell}>
-      <Sidebar
-        projectName={project?.name ?? "…"}
-        open={navOpen}
-        onClose={() => setNavOpen(false)}
-      />
+      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
       <div className={styles.main}>
         <TopBar
           projects={projects}
@@ -367,6 +362,7 @@ export function FlagsClient() {
             status={status}
             type={type}
             sort={sort}
+            disabled={phase === "ready" && rows.length === 0}
             onQ={(v) => {
               setQ(v);
               setPage(1);

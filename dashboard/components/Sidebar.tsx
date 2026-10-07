@@ -11,17 +11,7 @@ const NAV = [
   { href: "/settings", label: "Project Settings", icon: GearIcon },
 ];
 
-export function Sidebar({
-  projectName,
-  orgName,
-  open,
-  onClose,
-}: {
-  projectName: string;
-  orgName?: string;
-  open: boolean;
-  onClose: () => void;
-}) {
+export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
   return (
     <>
@@ -52,18 +42,6 @@ export function Sidebar({
             );
           })}
         </nav>
-        <div className={styles.projectCard}>
-          <span className={styles.avatar} aria-hidden="true">
-            {projectName.slice(0, 1).toUpperCase()}
-          </span>
-          <span className={styles.projectMeta}>
-            <strong>{projectName}</strong>
-            {orgName && <small>{orgName}</small>}
-          </span>
-          <span className={styles.chevron} aria-hidden="true">
-            ›
-          </span>
-        </div>
       </aside>
     </>
   );

@@ -11,6 +11,7 @@ export function FilterBar({
   status,
   type,
   sort,
+  disabled,
   onQ,
   onStatus,
   onType,
@@ -20,6 +21,7 @@ export function FilterBar({
   status: StatusFilter;
   type: TypeFilter;
   sort: SortKey;
+  disabled?: boolean;
   onQ: (v: string) => void;
   onStatus: (v: StatusFilter) => void;
   onType: (v: TypeFilter) => void;
@@ -41,11 +43,12 @@ export function FilterBar({
           placeholder="Search flags…"
           value={q}
           onChange={(e) => onQ(e.target.value)}
+          disabled={disabled}
         />
       </div>
       <label className={styles.filterWrap}>
         <span className={styles.visuallyHidden}>Filter by status</span>
-        <select value={status} onChange={(e) => onStatus(e.target.value as StatusFilter)} aria-label="Filter by status">
+        <select value={status} onChange={(e) => onStatus(e.target.value as StatusFilter)} aria-label="Filter by status" disabled={disabled}>
           <option value="all">All statuses</option>
           <option value="enabled">Enabled</option>
           <option value="disabled">Disabled</option>
@@ -53,7 +56,7 @@ export function FilterBar({
       </label>
       <label className={styles.filterWrap}>
         <span className={styles.visuallyHidden}>Filter by type</span>
-        <select value={type} onChange={(e) => onType(e.target.value as TypeFilter)} aria-label="Filter by type">
+        <select value={type} onChange={(e) => onType(e.target.value as TypeFilter)} aria-label="Filter by type" disabled={disabled}>
           <option value="all">All types</option>
           <option value="bool">Boolean</option>
           <option value="string">String</option>
@@ -61,7 +64,7 @@ export function FilterBar({
       </label>
       <label className={styles.filterWrap}>
         <span className={styles.visuallyHidden}>Sort flags</span>
-        <select value={sort} onChange={(e) => onSort(e.target.value as SortKey)} aria-label="Sort flags">
+        <select value={sort} onChange={(e) => onSort(e.target.value as SortKey)} aria-label="Sort flags" disabled={disabled}>
           <option value="updated">Last updated</option>
           <option value="name-asc">Name A–Z</option>
           <option value="name-desc">Name Z–A</option>

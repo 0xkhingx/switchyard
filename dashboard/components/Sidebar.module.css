@@ -23,7 +23,7 @@
 .brandLogo {
   /* The lockup artwork is dark navy; invert to white for the dark sidebar. */
   filter: brightness(0) invert(1);
-  height: 34px;
+  height: 38px;
   width: auto;
   display: block;
   max-width: 100%;
@@ -63,57 +63,6 @@
   background: rgba(22, 119, 255, 0.22);
   border-left-color: var(--accent);
   color: #fff;
-}
-
-.projectCard {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-}
-
-.avatar {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 15px;
-  color: #fff;
-  background: #5b6cff;
-  border-radius: 9px;
-}
-
-.projectMeta {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.projectMeta strong {
-  font-size: 14px;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.projectMeta small {
-  font-size: 12px;
-  color: #9db1cc;
-}
-
-.chevron {
-  font-size: 20px;
-  color: #9db1cc;
-  line-height: 1;
 }
 
 @media (max-width: 1023px) {
