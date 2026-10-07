@@ -19,13 +19,12 @@ const CONFIG_V1 = {
 
 // Tiny stub for GET /sdk/v1/config with ETag/304 support.
 // Sends `Connection: close` so teardown never waits on keep-alive sockets.
-function startStub({ key = "sy_test", onHit = null } = {}) {
+function startStub({ key = "sy_test" } = {}) {
   const state = { version: 1, config: structuredClone(CONFIG_V1), hits: 0, notModified: 0, raw: null };
   const server = http.createServer((req, res) => {
     if (req.url !== "/sdk/v1/config") { res.writeHead(404); res.end(); return; }
     if (req.headers.authorization !== `Bearer ${key}`) { res.writeHead(401); res.end(); return; }
     state.hits += 1;
-    onHit?.();
     if (state.raw !== null) {
       res.writeHead(200, { "Content-Type": "application/json", ETag: `"v${state.version}"`, Connection: "close" });
       res.end(state.raw);

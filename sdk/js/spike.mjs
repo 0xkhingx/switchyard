@@ -1,5 +1,4 @@
-// M0 spike loader, now an Engine smoke check.
-// Run from repo root: node ./sdk/js/spike.mjs
+// Engine smoke check. Run from repo root: node ./sdk/js/spike.mjs
 import { existsSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";

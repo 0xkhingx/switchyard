@@ -1,6 +1,7 @@
 /target/
 **/target/
-**/pkg/
+sdk/js/pkg-nodejs/
+sdk/js/pkg-web/
 **/node_modules/
 .env
 .sqlx/

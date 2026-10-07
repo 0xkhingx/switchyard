@@ -181,7 +181,7 @@ async fn main() {
     };
     let origin = std::env::var("DASHBOARD_ORIGIN").unwrap_or_else(|_| "http://localhost:3000".to_string());
     let secure = std::env::var("COOKIE_SECURE").map(|v| v == "1" || v == "true").unwrap_or(false);
-    let state = AppState { pool, dashboard_origin: origin.clone(), secure_cookies: secure };
+    let state = AppState { pool, secure_cookies: secure };
     let app = router(state).layer(cors(&origin)).layer(TraceLayer::new_for_http());
     let port: u16 = std::env::var("PORT").ok().and_then(|v| v.parse().ok()).unwrap_or(8080);
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
@@ -215,7 +215,6 @@ mod db_tests {
         };
         let state = super::AppState {
             pool: pool.clone(),
-            dashboard_origin: "http://localhost:3000".into(),
             secure_cookies: false,
         };
         let app = super::router(state).layer(super::cors("http://localhost:3000"));
