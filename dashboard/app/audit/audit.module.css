@@ -297,6 +297,7 @@
 .detailsRow td {
   background: #f6f9fc;
   border-left: 3px solid var(--accent);
+  animation: sy-fade 150ms ease-out;
 }
 
 .details {

@@ -101,7 +101,7 @@ export function CreateFlagModal({
           <button type="button" className={styles.cancelButton} onClick={onClose} disabled={busy}>
             Cancel
           </button>
-          <button type="submit" className={styles.confirmButton} disabled={busy}>
+          <button type="submit" className={styles.confirmButton} disabled={busy} aria-busy={busy}>
             {busy ? "Creating…" : "Create flag"}
           </button>
         </div>

@@ -160,6 +160,7 @@ export function TestPanel({
         className={styles.evaluateButton}
         onClick={() => void run()}
         disabled={busy || !userId.trim()}
+        aria-busy={busy}
       >
         {busy ? "Evaluating…" : "Evaluate flag"}
       </button>

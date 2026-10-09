@@ -107,6 +107,7 @@ export function ConfirmModal({
           className={danger ? styles.dangerButton : styles.confirmButton}
           onClick={onConfirm}
           disabled={busy}
+          aria-busy={busy}
           autoFocus
         >
           {busy ? "Working…" : confirmLabel}

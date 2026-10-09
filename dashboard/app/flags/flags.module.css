@@ -58,11 +58,15 @@
   border-radius: var(--radius-control);
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 175ms ease;
+  transition: background-color 175ms ease, transform 100ms ease;
 }
 
 .createButton:hover:not(:disabled) {
   background: var(--accent-fill-hover);
+}
+
+.createButton:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .createButton:focus-visible {
@@ -274,6 +278,7 @@
   border-radius: 12px;
   box-shadow: 0 16px 40px -12px rgba(7, 26, 51, 0.3);
   padding: 6px;
+  animation: sy-rise 150ms ease-out;
 }
 
 .menuItem {
@@ -400,6 +405,11 @@
 
 .confirmButton:hover:not(:disabled) {
   background: var(--accent-fill-hover);
+}
+
+.confirmButton:active:not(:disabled),
+.evaluateButton:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .cancelButton:focus-visible,
@@ -1046,6 +1056,7 @@
 .evaluateButton {
   width: 100%;
   height: 46px;
+  transition: background-color 175ms ease, transform 100ms ease;
   margin-top: 16px;
   font-size: 15px;
   font-weight: 600;

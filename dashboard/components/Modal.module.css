@@ -7,6 +7,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  animation: sy-fade 150ms ease-out;
 }
 
 .dialog {
@@ -17,6 +18,7 @@
   background: #fff;
   border-radius: var(--radius-card);
   box-shadow: 0 32px 80px -16px rgba(7, 26, 51, 0.4);
+  animation: sy-rise 200ms ease-out;
 }
 
 .dialog.wide {
@@ -110,6 +112,7 @@
   border: none;
   border-radius: var(--radius-control);
   cursor: pointer;
+  transition: background-color 175ms ease, transform 100ms ease;
 }
 
 .confirmButton {
@@ -118,6 +121,11 @@
 
 .confirmButton:hover:not(:disabled) {
   background: var(--accent-fill-hover);
+}
+
+.confirmButton:active:not(:disabled),
+.dangerButton:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .confirmButton:focus-visible,

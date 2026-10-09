@@ -135,7 +135,7 @@ export function LoginForm() {
         )}
       </div>
 
-      <button type="submit" className={styles.submit} disabled={submitting}>
+      <button type="submit" className={styles.submit} disabled={submitting} aria-busy={submitting}>
         {submitting ? "Signing in…" : "Sign in"}
       </button>
     </form>

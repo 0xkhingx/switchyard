@@ -187,7 +187,7 @@
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: background-color 175ms ease, box-shadow 175ms ease;
+  transition: background-color 175ms ease, box-shadow 175ms ease, transform 100ms ease;
 }
 
 .submit:hover:not(:disabled) {
@@ -196,6 +196,7 @@
 
 .submit:active:not(:disabled) {
   background: var(--accent-pressed);
+  transform: scale(0.98);
 }
 
 .submit:focus-visible {

@@ -48,6 +48,7 @@
 
 .createButton {
   height: 44px;
+  transition: background-color 175ms ease, transform 100ms ease;
   padding: 0 20px;
   font-size: 15px;
   font-weight: 600;
@@ -412,6 +413,11 @@
 
 .confirmButton:hover:not(:disabled) {
   background: var(--accent-fill-hover);
+}
+
+.createButton:active:not(:disabled),
+.confirmButton:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .cancelButton:focus-visible,

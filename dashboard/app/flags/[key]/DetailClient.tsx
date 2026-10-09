@@ -450,6 +450,7 @@ export function DetailClient({ flagKey }: { flagKey: string }) {
                     type="button"
                     className={styles.createButton}
                     disabled={!isDirty || !canEdit || busy}
+                    aria-busy={busy}
                     onClick={() => void save()}
                   >
                     {busy ? "Saving…" : "Save changes"}
