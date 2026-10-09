@@ -7,6 +7,7 @@ import {
   type RuleDraft,
   type ServeDraft,
 } from "./draft";
+import { TrashIcon } from "@/components/icons";
 import styles from "../flags.module.css";
 
 function BoolSegment({
@@ -222,11 +223,11 @@ export function ConditionRow({
         className={styles.iconButton}
         disabled={readOnly}
         onClick={onDelete}
-        aria-label="Delete condition"
-        title="Delete condition"
-      >
-        🗑
-      </button>
+            aria-label="Delete condition"
+            title="Delete condition"
+          >
+            <TrashIcon size={16} />
+          </button>
     </div>
   );
 }
@@ -331,7 +332,7 @@ export function RuleCard({
             aria-label={`Delete rule ${index + 1}`}
             title="Delete rule"
           >
-            🗑
+            <TrashIcon size={16} />
           </button>
         </span>
       </div>

@@ -6,7 +6,7 @@
   height: 26px;
   margin: 0;
   border-radius: 999px;
-  background: #c3cfdd;
+  background: #8494aa;
   position: relative;
   cursor: pointer;
   transition: background-color 175ms ease;
@@ -116,7 +116,7 @@
   justify-content: center;
   font-weight: 700;
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-fill);
   border-radius: 8px;
 }
 
@@ -145,6 +145,18 @@
   padding: 36px 24px;
 }
 
+.stateIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  background: #eef3f8;
+  border-radius: 14px;
+}
+
 .stateCard h3 {
   margin: 0;
   font-size: 18px;
@@ -169,7 +181,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-fill);
   border: none;
   border-radius: var(--radius-control);
   cursor: pointer;
@@ -177,7 +189,7 @@
 }
 
 .primaryButton:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-fill-hover);
 }
 
 .primaryButton:focus-visible {

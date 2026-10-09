@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MoreHorizIcon } from "@/components/icons";
 import styles from "./flags.module.css";
 
 // Three-dot row menu. Only what v1 supports: Open, Archive.
@@ -42,7 +43,7 @@ export function RowMenu({
         aria-label={`Actions for ${flagKey}`}
         onClick={() => setOpen((v) => !v)}
       >
-        •••
+        <MoreHorizIcon size={20} />
       </button>
       {open && (
         <div className={styles.menu} role="menu">

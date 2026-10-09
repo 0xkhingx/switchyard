@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { KeyIcon, LockIcon, SearchIcon, TriangleFlagIcon } from "@/components/icons";
 import { Sidebar } from "@/components/Sidebar";
 import { TopBar } from "@/components/TopBar";
 import { ConfirmModal, Modal } from "@/components/Modal";
@@ -221,11 +222,8 @@ export function SdkKeysClient() {
           <div className={styles.grid}>
             <div className={styles.listCol}>
               <div className={styles.card}>
-                <div className={styles.searchWrap}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
+              <div className={styles.searchWrap}>
+                <SearchIcon size={17} />
                   <label className={styles.visuallyHidden} htmlFor="key-search">
                     Search keys
                   </label>
@@ -244,6 +242,7 @@ export function SdkKeysClient() {
                   <EmptyState
                     title="No SDK keys yet"
                     body="Create an SDK key to connect your application to Switchyard."
+                    icon={<KeyIcon size={22} />}
                     action={
                       canManage ? (
                         <button
@@ -261,6 +260,7 @@ export function SdkKeysClient() {
                   <EmptyState
                     title="No SDK keys match your search."
                     body="Try a different search term."
+                    icon={<SearchIcon size={22} />}
                     action={
                       <button type="button" className={styles.secondaryButton} onClick={() => setQ("")}>
                         Clear search
@@ -439,8 +439,8 @@ function EnvName({ name, isProtected }: { name?: string; isProtected?: boolean }
       <span className={styles.envDot} aria-hidden="true" />
       {name}
       {isProtected && (
-        <span aria-label="Protected environment" title="Protected environment">
-          🔒
+        <span role="img" aria-label="Protected environment" title="Protected environment">
+          <LockIcon size={14} />
         </span>
       )}
     </span>
@@ -610,7 +610,7 @@ function CreateKeyModal({
             {envs.map((e) => (
               <option key={e.key} value={e.key}>
                 {e.name}
-                {e.protected ? " 🔒" : ""}
+                {e.protected ? " (protected)" : ""}
               </option>
             ))}
           </select>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, Fragment } from "react";
+import { ClockIcon, LockIcon, NavArrowDownIcon, NavArrowLeftIcon, NavArrowRightIcon, SearchIcon } from "@/components/icons";
 import { Sidebar } from "@/components/Sidebar";
 import { TopBar } from "@/components/TopBar";
 import { EmptyState, ErrorCard, TableSkeleton } from "@/components/controls";
@@ -280,10 +281,7 @@ export function AuditClient() {
 
           <div className={styles.filters}>
             <div className={styles.searchWrap}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <SearchIcon size={17} />
               <label className={styles.visuallyHidden} htmlFor="audit-search">
                 Search events
               </label>
@@ -395,12 +393,14 @@ export function AuditClient() {
               <EmptyState
                 title="No audit activity yet"
                 body="Changes to flags and project configuration will appear here."
+                icon={<ClockIcon size={22} />}
               />
             )}
             {phase === "ready" && total === 0 && filtering && (
               <EmptyState
                 title="No events match your filters."
                 body="Try a different search or clear the filters."
+                icon={<SearchIcon size={22} />}
                 action={
                   <button type="button" className={styles.secondaryButton} onClick={clearFilters}>
                     Clear filters
@@ -490,7 +490,7 @@ export function AuditClient() {
                                   setShowJson(false);
                                 }}
                               >
-                                {isOpen ? "▾" : "›"}
+                                {isOpen ? <NavArrowDownIcon size={16} /> : <NavArrowRightIcon size={16} />}
                               </button>
                             </td>
                           </tr>
@@ -541,7 +541,7 @@ export function AuditClient() {
                                           aria-expanded={showJson}
                                           onClick={() => setShowJson((v) => !v)}
                                         >
-                                          {showJson ? "▾" : "›"} Full configuration diff (JSON)
+                                          {showJson ? <NavArrowDownIcon size={14} /> : <NavArrowRightIcon size={14} />} Full configuration diff (JSON)
                                         </button>
                                         {showJson && (
                                           <pre className={styles.jsonBlock}>
@@ -608,7 +608,7 @@ export function AuditClient() {
                               setShowJson(false);
                             }}
                           >
-                            {isOpen ? "▾" : "›"}
+                            {isOpen ? <NavArrowDownIcon size={16} /> : <NavArrowRightIcon size={16} />}
                           </button>
                         </div>
                         <p className={styles.eventCardSummary}>{summarize(e)}</p>
@@ -646,7 +646,7 @@ export function AuditClient() {
                       onClick={() => setPage(safePage - 1)}
                       aria-label="Previous page"
                     >
-                      ‹
+                      <NavArrowLeftIcon size={16} />
                     </button>
                     {pageNumbers().map((p) => (
                       <button
@@ -667,7 +667,7 @@ export function AuditClient() {
                       onClick={() => setPage(safePage + 1)}
                       aria-label="Next page"
                     >
-                      ›
+                      <NavArrowRightIcon size={16} />
                     </button>
                   </span>
                 </div>
@@ -708,11 +708,9 @@ function EnvBadge({
       <span className={styles.envDot} aria-hidden="true" />
       {name}
       {isProtected && (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Protected environment" role="img">
-          <title>Protected environment</title>
-          <rect x="3" y="11" width="18" height="11" rx="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
+        <span role="img" aria-label="Protected environment" title="Protected environment">
+          <LockIcon size={12} />
+        </span>
       )}
     </span>
   );

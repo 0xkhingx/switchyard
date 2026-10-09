@@ -2,8 +2,10 @@
   --navy: #071a33;
   --dark-navy: #041224;
   --accent: #1677ff;
-  --accent-hover: #0f63d8;
-  --accent-active: #0b52b8;
+  --accent-fill: #0f63d8;
+  --accent-fill-hover: #0b52b8;
+  --accent-pressed: #08418f;
+  --accent-ink: #0f63d8;
   --page-bg: #f6f9fc;
   --border: #d8e1ec;
   --muted: #64748b;

@@ -27,6 +27,7 @@ import {
 } from "@/lib/api";
 import { timeAgo } from "@/lib/format";
 import { FilterBar, type SortKey, type StatusFilter, type TypeFilter } from "./FilterBar";
+import { SearchIcon, TriangleFlagIcon } from "@/components/icons";
 import { CreateFlagModal } from "./CreateFlagModal";
 import { RowMenu } from "./RowMenu";
 import styles from "./flags.module.css";
@@ -387,6 +388,7 @@ export function FlagsClient() {
               <EmptyState
                 title="No feature flags yet"
                 body="Create your first flag to start controlling releases."
+                icon={<TriangleFlagIcon size={22} />}
                 action={
                   canEdit ? (
                     <button
@@ -404,6 +406,7 @@ export function FlagsClient() {
               <EmptyState
                 title="No flags match your filters."
                 body="Try a different search or clear the filters."
+                icon={<SearchIcon size={22} />}
                 action={
                   <button
                     type="button"

@@ -1,6 +1,7 @@
 "use client";
 
 import type { Env, Project } from "@/lib/api";
+import { LockIcon, MenuIcon } from "./icons";
 import styles from "./TopBar.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
@@ -35,11 +36,7 @@ export function TopBar({
   return (
     <header className={styles.bar}>
       <button type="button" className={styles.hamburger} onClick={onMenu} aria-label="Open navigation">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
+        <MenuIcon size={20} />
       </button>
       <div className={styles.selectors}>
         <label className={styles.selectWrap}>
@@ -76,10 +73,7 @@ export function TopBar({
             </select>
             {env?.protected && (
               <span className={styles.lock} title="Protected environment" aria-label="Protected environment">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
+                <LockIcon size={14} />
               </span>
             )}
           </span>

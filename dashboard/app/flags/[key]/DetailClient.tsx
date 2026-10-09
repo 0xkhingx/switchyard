@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { TopBar } from "@/components/TopBar";
 import { ConfirmModal } from "@/components/Modal";
+import { MoreHorizIcon } from "@/components/icons";
 import { EmptyState, ErrorCard, TableSkeleton, Toggle, TypeBadge } from "@/components/controls";
 import {
   ApiError,
@@ -427,7 +428,7 @@ export function DetailClient({ flagKey }: { flagKey: string }) {
                       aria-label={`Actions for ${flagKey}`}
                       onClick={() => setMenuOpen((v) => !v)}
                     >
-                      •••
+                      <MoreHorizIcon size={20} />
                     </button>
                     {menuOpen && (
                       <span className={styles.menu} role="menu">

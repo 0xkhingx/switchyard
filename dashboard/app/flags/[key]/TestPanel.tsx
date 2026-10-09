@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { TrashIcon } from "@/components/icons";
 import { bucket } from "@/lib/murmur";
 import styles from "../flags.module.css";
 
@@ -142,7 +143,7 @@ export function TestPanel({
             aria-label={`Remove attribute ${a.name || i + 1}`}
             title="Remove attribute"
           >
-            🗑
+            <TrashIcon size={16} />
           </button>
         </div>
       ))}

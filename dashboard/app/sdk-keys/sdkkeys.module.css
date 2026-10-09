@@ -52,7 +52,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-fill);
   border: none;
   border-radius: var(--radius-control);
   cursor: pointer;
@@ -61,7 +61,7 @@
 }
 
 .createButton:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-fill-hover);
 }
 
 .createButton:focus-visible {
@@ -404,14 +404,14 @@
   font-size: 14.5px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-fill);
   border: none;
   border-radius: var(--radius-control);
   cursor: pointer;
 }
 
 .confirmButton:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-fill-hover);
 }
 
 .cancelButton:focus-visible,

@@ -1,5 +1,6 @@
 "use client";
 
+import { NavArrowLeftIcon, NavArrowRightIcon } from "./icons";
 import styles from "./controls.module.css";
 
 // Accessible switch. Renders a real checkbox so keyboard + screen readers work.
@@ -73,7 +74,7 @@ export function Pagination({
           disabled={page <= 1}
           aria-label="Previous page"
         >
-          ‹
+          <NavArrowLeftIcon size={16} />
         </button>
         <span className={styles.pageCurrent} aria-current="page">
           {page}
@@ -85,7 +86,7 @@ export function Pagination({
           disabled={page >= totalPages}
           aria-label="Next page"
         >
-          ›
+          <NavArrowRightIcon size={16} />
         </button>
       </span>
     </div>
@@ -118,13 +119,20 @@ export function EmptyState({
   title,
   body,
   action,
+  icon,
 }: {
   title: string;
   body: string;
   action?: React.ReactNode;
+  icon?: React.ReactNode;
 }) {
   return (
     <div className={styles.stateCard}>
+      {icon && (
+        <span className={styles.stateIcon} aria-hidden="true">
+          {icon}
+        </span>
+      )}
       <h3>{title}</h3>
       <p>{body}</p>
       {action}

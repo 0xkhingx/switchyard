@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { CopyIcon, InfoCircleIcon, LockIcon } from "@/components/icons";
 import { Sidebar } from "@/components/Sidebar";
 import { TopBar } from "@/components/TopBar";
 import { EmptyState, ErrorCard, TableSkeleton } from "@/components/controls";
@@ -128,25 +129,6 @@ export function SettingsClient() {
 
   const shortId = project ? `${project.id.slice(0, 8)}…${project.id.slice(-8)}` : "";
 
-function LockIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="11" width="18" height="11" rx="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
-  );
-}
-
   return (
     <div className={styles.shell}>
       <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
@@ -190,7 +172,7 @@ function InfoIcon() {
                     </div>
                   </dl>
                   <p className={styles.infoStrip}>
-                    <InfoIcon />
+                    <InfoCircleIcon size={15} />
                     <span>
                       Project details are read-only in this version. Renaming is not supported by
                       the API yet.
@@ -222,7 +204,7 @@ function InfoIcon() {
                             <td>
                               {e.protected ? (
                                 <span className={styles.protected}>
-                                  <LockIcon /> Protected
+                                  <LockIcon size={14} /> Protected
                                 </span>
                               ) : (
                                 <span className={styles.muted}>Not protected</span>
@@ -235,7 +217,7 @@ function InfoIcon() {
                     </table>
                   )}
                   <p className={styles.infoStrip}>
-                    <InfoIcon />
+                    <InfoCircleIcon size={15} />
                     <span>Protected environments restrict changes based on user permissions.</span>
                   </p>
                 </section>
@@ -259,7 +241,7 @@ function InfoIcon() {
                     </li>
                   </ul>
                   <p className={styles.infoStrip}>
-                    <InfoIcon />
+                    <InfoCircleIcon size={15} />
                     <span>Project membership is currently managed through the API.</span>
                   </p>
                 </section>
@@ -282,7 +264,7 @@ function InfoIcon() {
                           aria-label="Copy project ID"
                           aria-live="polite"
                         >
-                          {copied ? "Copied" : "⧉"}
+                          {copied ? "Copied" : <CopyIcon size={14} />}
                         </button>
                       </dd>
                     </div>

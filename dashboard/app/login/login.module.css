@@ -104,7 +104,7 @@
 }
 
 .input::placeholder {
-  color: #94a3b8;
+  color: #75849a;
 }
 
 /* Browsers paint autofilled fields pale blue, which reads as disabled.
@@ -183,7 +183,7 @@
   font-size: 16px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-fill);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -191,11 +191,11 @@
 }
 
 .submit:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-fill-hover);
 }
 
 .submit:active:not(:disabled) {
-  background: var(--accent-active);
+  background: var(--accent-pressed);
 }
 
 .submit:focus-visible {

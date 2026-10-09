@@ -164,7 +164,7 @@
 }
 
 .cellFlag a:hover {
-  color: var(--accent);
+  color: var(--accent-ink);
   text-decoration: underline;
 }
 
@@ -386,7 +386,7 @@
   margin-top: 14px;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-ink);
   background: transparent;
   border: none;
   padding: 6px 0;
@@ -462,7 +462,7 @@
   justify-content: center;
   font-weight: 700;
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-fill);
   border: none;
   border-radius: 8px;
   cursor: default;

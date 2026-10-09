@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { XmarkIcon } from "./icons";
 import styles from "./Modal.module.css";
 
 // Focus-trapped dialog shell: Escape closes, initial focus lands inside,
@@ -68,7 +69,7 @@ export function Modal({
         <div className={styles.header}>
           <h2>{title}</h2>
           <button type="button" className={styles.close} onClick={onClose} aria-label="Close dialog">
-            ✕
+            <XmarkIcon size={15} />
           </button>
         </div>
         <div className={styles.body}>{children}</div>
