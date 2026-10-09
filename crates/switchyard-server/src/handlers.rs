@@ -245,11 +245,12 @@ pub struct ProjectBody {
     pub id: Uuid,
     pub key: String,
     pub name: String,
+    pub created_at: DateTime<Utc>,
 }
 
 pub async fn list_projects(State(state): State<AppState>, user: AuthUser) -> Result<Json<Vec<ProjectBody>>, ApiError> {
-    let rows: Vec<(Uuid, String, String)> = sqlx::query_as(
-        "SELECT p.id, p.key, p.name FROM projects p
+    let rows: Vec<(Uuid, String, String, DateTime<Utc>)> = sqlx::query_as(
+        "SELECT p.id, p.key, p.name, p.created_at FROM projects p
          JOIN memberships m ON m.project_id = p.id
          WHERE m.user_id = $1 ORDER BY p.created_at",
     )
@@ -259,7 +260,7 @@ pub async fn list_projects(State(state): State<AppState>, user: AuthUser) -> Res
     .map_err(ApiError::internal)?;
     Ok(Json(
         rows.into_iter()
-            .map(|(id, key, name)| ProjectBody { id, key, name })
+            .map(|(id, key, name, created_at)| ProjectBody { id, key, name, created_at })
             .collect(),
     ))
 }
@@ -305,7 +306,7 @@ pub async fn create_project(
     tx.commit().await.map_err(ApiError::internal)?;
     Ok((
         StatusCode::CREATED,
-        Json(ProjectBody { id, key: body.key, name: body.name }),
+        Json(ProjectBody { id, key: body.key, name: body.name, created_at: chrono::Utc::now() }),
     ))
 }
 

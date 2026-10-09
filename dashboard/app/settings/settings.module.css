@@ -1,0 +1,263 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--page-bg);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 32px 32px;
+}
+
+.content {
+  max-width: 1240px;
+}
+
+.pageHead {
+  margin: 10px 0 20px;
+}
+
+.pageHead h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.pageHead p {
+  margin: 6px 0 0;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
+  gap: 20px;
+  align-items: start;
+  padding-bottom: 32px;
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.sideCol {
+  min-width: 0;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e6edf4;
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px -16px rgba(7, 26, 51, 0.18);
+  padding: 20px 22px;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.cardSub {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.detailList {
+  margin: 14px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.detailList > div {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef3f8;
+  font-size: 14.5px;
+}
+
+.detailList > div:last-child {
+  border-bottom: none;
+}
+
+.detailList dt {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.detailList dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13.5px;
+}
+
+.readOnlyNote {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid #e6edf4;
+}
+
+.table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #eef3f8;
+  color: var(--text);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr strong {
+  font-weight: 600;
+}
+
+.protected {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.roleCounts {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.roleCounts strong {
+  color: var(--text);
+  font-size: 17px;
+  margin-right: 6px;
+}
+
+.infoList {
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.infoList > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef3f8;
+  font-size: 14px;
+  align-items: center;
+}
+
+.infoList > div:last-child {
+  border-bottom: none;
+}
+
+.infoList dt {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.infoList dd {
+  margin: 0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.monoSmall {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.copyButton {
+  flex: 0 0 auto;
+  min-width: 44px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  color: var(--text);
+  border-color: #b9c7d8;
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
+  .main {
+    padding: 6px 20px 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 719px) {
+  .main {
+    padding: 6px 16px 20px;
+  }
+
+  .detailList > div,
+  .infoList > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

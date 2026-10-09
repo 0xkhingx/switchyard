@@ -58,6 +58,7 @@ export interface Project {
   id: string;
   key: string;
   name: string;
+  created_at: string;
 }
 
 export interface Env {
