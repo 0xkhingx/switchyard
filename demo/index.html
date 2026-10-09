@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Switchyard Demo</title>
+  <style>
+    :root {
+      --navy: #071a33;
+      --accent: #1677ff;
+      --page-bg: #f6f9fc;
+      --border: #d8e1ec;
+      --muted: #64748b;
+      --success: #16a36a;
+      --error: #c81e1e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      background: var(--page-bg);
+      color: var(--navy);
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 26px; margin: 0 0 6px; }
+    .sub { color: var(--muted); font-size: 14.5px; margin: 0 0 20px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e6edf4;
+      border-radius: 20px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px -16px rgba(7, 26, 51, 0.18);
+    }
+    .card h2 { margin: 0 0 10px; font-size: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    input[type="text"], input[type="password"] {
+      width: 100%; height: 44px; padding: 0 12px; font-size: 14px;
+      border: 1.5px solid var(--border); border-radius: 10px; outline: none;
+    }
+    input:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(22,119,255,.18); }
+    button {
+      height: 44px; padding: 0 20px; font-size: 15px; font-weight: 600;
+      color: #fff; background: var(--accent); border: none; border-radius: 10px; cursor: pointer;
+    }
+    button:disabled { background: #93bcfb; cursor: not-allowed; }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .row { display: flex; gap: 10px; }
+    .row input { flex: 1; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-top: 12px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+    .dot.ok { background: var(--success); }
+    .dot.bad { background: var(--error); }
+    #banner {
+      display: none; padding: 14px 18px; border-radius: 12px; font-weight: 600;
+      background: #e3efff; color: #0f63d8; margin-bottom: 16px;
+    }
+    #banner.show { display: block; }
+    #cta { font-size: 17px; }
+    #log { list-style: none; margin: 12px 0 0; padding: 0; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    #log code { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--navy); }
+    .hint { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Switchyard Demo</h1>
+    <p class="sub">Live SDK evaluation. Flip a flag in the dashboard and watch this page change.</p>
+
+    <section class="card" aria-label="Connection">
+      <h2>Connection</h2>
+      <label for="sdk-key">SDK key (development)</label>
+      <div class="row">
+        <input id="sdk-key" type="password" placeholder="sy_…" autocomplete="off" />
+        <button id="connect" type="button">Connect</button>
+      </div>
+      <p class="status"><span class="dot" id="dot"></span><span id="status">Not connected.</span></p>
+      <p class="hint">The key stays in this page&apos;s memory only — it is never stored. Create one in the dashboard under SDK Keys.</p>
+    </section>
+
+    <div id="banner" role="status">🎉 The demo banner flag is ON — disable <code>demo-banner</code> to hide this.</div>
+
+    <section class="card" aria-label="Product">
+      <h2>Acme checkout</h2>
+      <p><button id="cta" type="button">…</button></p>
+      <p class="hint">Button text comes from the <code>demo-cta</code> string flag.</p>
+    </section>
+
+    <section class="card" aria-label="Evaluation log">
+      <h2>Evaluations</h2>
+      <ul id="log"></ul>
+    </section>
+  </main>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>

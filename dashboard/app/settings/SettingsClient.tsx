@@ -109,8 +109,7 @@ export function SettingsClient() {
   const activeFlags = flags.filter((f) => !f.archived).length;
   const initials = (me?.email || "?").slice(0, 2).toUpperCase();
 
-  function exactDate(iso: string): string {
-    const d = new Date(iso);
+  function exactDate(iso: string): string {    const d = new Date(iso);
     return Number.isNaN(d.getTime())
       ? iso
       : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
@@ -126,6 +125,27 @@ export function SettingsClient() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
+
+  const shortId = project ? `${project.id.slice(0, 8)}…${project.id.slice(-8)}` : "";
+
+function LockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  );
+}
 
   return (
     <div className={styles.shell}>
@@ -169,9 +189,12 @@ export function SettingsClient() {
                       <dd className={styles.mono}>{project.key}</dd>
                     </div>
                   </dl>
-                  <p className={styles.readOnlyNote}>
-                    Project details are read-only in this version. Renaming is not supported by
-                    the API yet.
+                  <p className={styles.infoStrip}>
+                    <InfoIcon />
+                    <span>
+                      Project details are read-only in this version. Renaming is not supported by
+                      the API yet.
+                    </span>
                   </p>
                 </section>
 
@@ -199,7 +222,7 @@ export function SettingsClient() {
                             <td>
                               {e.protected ? (
                                 <span className={styles.protected}>
-                                  🔒 Protected
+                                  <LockIcon /> Protected
                                 </span>
                               ) : (
                                 <span className={styles.muted}>Not protected</span>
@@ -211,8 +234,9 @@ export function SettingsClient() {
                       </tbody>
                     </table>
                   )}
-                  <p className={styles.readOnlyNote}>
-                    Protected environments restrict changes based on user permissions.
+                  <p className={styles.infoStrip}>
+                    <InfoIcon />
+                    <span>Protected environments restrict changes based on user permissions.</span>
                   </p>
                 </section>
 
@@ -234,8 +258,9 @@ export function SettingsClient() {
                       <strong>{viewers.length}</strong> Viewer{viewers.length === 1 ? "" : "s"}
                     </li>
                   </ul>
-                  <p className={styles.readOnlyNote}>
-                    Project membership is currently managed through the API.
+                  <p className={styles.infoStrip}>
+                    <InfoIcon />
+                    <span>Project membership is currently managed through the API.</span>
                   </p>
                 </section>
               </div>
@@ -247,7 +272,9 @@ export function SettingsClient() {
                     <div>
                       <dt>Project ID</dt>
                       <dd>
-                        <span className={styles.monoSmall}>{project.id}</span>
+                        <span className={styles.monoSmall} title={project.id}>
+                          {shortId}
+                        </span>
                         <button
                           type="button"
                           className={styles.copyButton}
