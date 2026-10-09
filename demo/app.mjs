@@ -14,7 +14,8 @@ const banner = document.getElementById("banner");
 const cta = document.getElementById("cta");
 const log = document.getElementById("log");
 
-const engine = new Engine();
+const engineHolder = { engine: null };
+
 let sdkKey = new URLSearchParams(location.search).get("key") || "";
 let etag = null;
 let timer = null;
@@ -39,6 +40,8 @@ function logEval(flag, detail) {
 }
 
 function render() {
+  const engine = engineHolder.engine;
+  if (!engine) return;
   const ctx = JSON.stringify({ key: "demo-user", attributes: {} });
   try {
     const b = JSON.parse(engine.evaluate("demo-banner", ctx));
@@ -57,6 +60,8 @@ function render() {
 }
 
 async function tick() {
+  const engine = engineHolder.engine;
+  if (!engine) return;
   try {
     const headers = { Authorization: `Bearer ${sdkKey}` };
     if (etag) headers["If-None-Match"] = etag;
@@ -83,7 +88,13 @@ connectBtn.addEventListener("click", async () => {
   if (!sdkKey) return;
   clearInterval(timer);
   etag = null;
-  await init();
+  try {
+    await init();
+  } catch (e) {
+    setStatus(false, `Could not load the evaluator (${e.message}).`);
+    return;
+  }
+  engineHolder.engine = new Engine();
   await tick();
   timer = setInterval(tick, POLL_MS);
 });
