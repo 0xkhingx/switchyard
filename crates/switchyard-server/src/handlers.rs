@@ -833,6 +833,8 @@ pub struct SdkKeyBody {
     pub prefix: String,
     pub created_at: DateTime<Utc>,
     pub revoked_at: Option<DateTime<Utc>>,
+    pub created_by: Option<Uuid>,
+    pub last_used_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize)]
@@ -851,8 +853,8 @@ pub async fn list_sdk_keys(
     let (project_id, _) = resolve_project(&state.pool, &p).await?;
     rbac::require_role(&state.pool, user.id, project_id, Role::Admin).await?;
     let env = resolve_env(&state.pool, project_id, &e).await?;
-    let rows: Vec<(Uuid, String, String, DateTime<Utc>, Option<DateTime<Utc>>)> = sqlx::query_as(
-        "SELECT id, name, prefix, created_at, revoked_at FROM sdk_keys WHERE environment_id = $1 ORDER BY created_at",
+    let rows: Vec<(Uuid, String, String, DateTime<Utc>, Option<DateTime<Utc>>, Option<Uuid>, Option<DateTime<Utc>>)> = sqlx::query_as(
+        "SELECT id, name, prefix, created_at, revoked_at, created_by, last_used_at FROM sdk_keys WHERE environment_id = $1 ORDER BY created_at",
     )
     .bind(env.id)
     .fetch_all(&state.pool)
@@ -860,8 +862,8 @@ pub async fn list_sdk_keys(
     .map_err(ApiError::internal)?;
     Ok(Json(
         rows.into_iter()
-            .map(|(id, name, prefix, created_at, revoked_at)| SdkKeyBody {
-                id, name, prefix, created_at, revoked_at,
+            .map(|(id, name, prefix, created_at, revoked_at, created_by, last_used_at)| SdkKeyBody {
+                id, name, prefix, created_at, revoked_at, created_by, last_used_at,
             })
             .collect(),
     ))
@@ -885,13 +887,14 @@ pub async fn create_sdk_key(
     let id = Uuid::new_v4();
     let mut tx = state.pool.begin().await.map_err(ApiError::internal)?;
     let created: DateTime<Utc> = sqlx::query_as::<_, (DateTime<Utc>,)>(
-        "INSERT INTO sdk_keys (id, environment_id, name, prefix, key_hash) VALUES ($1, $2, $3, $4, $5) RETURNING created_at",
+        "INSERT INTO sdk_keys (id, environment_id, name, prefix, key_hash, created_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING created_at",
     )
     .bind(id)
     .bind(env.id)
     .bind(&body.name)
     .bind(&prefix)
     .bind(&hash)
+    .bind(user.id)
     .fetch_one(&mut *tx)
     .await
     .map_err(ApiError::internal)?
@@ -911,7 +914,7 @@ pub async fn create_sdk_key(
     Ok((
         StatusCode::CREATED,
         Json(SdkKeyCreated {
-            meta: SdkKeyBody { id, name: body.name, prefix, created_at: created, revoked_at: None },
+            meta: SdkKeyBody { id, name: body.name, prefix, created_at: created, revoked_at: None, created_by: Some(user.id), last_used_at: None },
             key: full,
         }),
     ))
@@ -1250,6 +1253,11 @@ pub async fn sdk_config(
 ) -> Result<Response, ApiError> {
     let (version, config) = assemble_env_config(&state.pool, sdk.project_id, sdk.environment_id).await?;
     let etag = etag_for(version);
+    // Record usage for the dashboard's "last used" column (best-effort).
+    let _ = sqlx::query("UPDATE sdk_keys SET last_used_at = now() WHERE id = $1")
+        .bind(sdk.key_id)
+        .execute(&state.pool)
+        .await;
     // 304 without building the body when the SDK is already current.
     if etag_matches(&headers, &etag) {
         return Response::builder()

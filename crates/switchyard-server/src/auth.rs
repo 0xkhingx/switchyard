@@ -31,6 +31,7 @@ pub struct AuthUser {
 }
 
 pub struct SdkCtx {
+    pub key_id: Uuid,
     pub environment_id: Uuid,
     pub project_id: Uuid,
 }
@@ -153,8 +154,8 @@ impl FromRequestParts<AppState> for SdkCtx {
             .strip_prefix("Bearer ")
             .ok_or((StatusCode::UNAUTHORIZED, "unauthorized"))?;
         let hash = sha256_bytes(token);
-        let row: Option<(Uuid, Uuid)> = sqlx::query_as(
-            "SELECT k.environment_id, e.project_id FROM sdk_keys k
+        let row: Option<(Uuid, Uuid, Uuid)> = sqlx::query_as(
+            "SELECT k.id, k.environment_id, e.project_id FROM sdk_keys k
              JOIN environments e ON e.id = k.environment_id
              WHERE k.key_hash = $1 AND k.revoked_at IS NULL",
         )
@@ -163,7 +164,7 @@ impl FromRequestParts<AppState> for SdkCtx {
         .await
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "internal error"))?;
         match row {
-            Some((environment_id, project_id)) => Ok(SdkCtx { environment_id, project_id }),
+            Some((key_id, environment_id, project_id)) => Ok(SdkCtx { key_id, environment_id, project_id }),
             None => Err((StatusCode::UNAUTHORIZED, "unauthorized")),
         }
     }

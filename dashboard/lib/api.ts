@@ -93,3 +93,26 @@ export interface Member {
   email: string;
   role: "admin" | "editor" | "viewer";
 }
+
+export interface SdkKey {
+  id: string;
+  name: string;
+  /** First characters of the key, for display. Never the secret. */
+  prefix: string;
+  created_at: string;
+  revoked_at: string | null;
+  created_by: string | null;
+  last_used_at: string | null;
+}
+
+export interface SdkKeyCreated {
+  id: string;
+  name: string;
+  prefix: string;
+  created_at: string;
+  revoked_at: string | null;
+  created_by: string | null;
+  last_used_at: string | null;
+  /** The full secret. Returned exactly once, at creation. */
+  key: string;
+}
