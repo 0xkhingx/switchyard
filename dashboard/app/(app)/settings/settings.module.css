@@ -1,0 +1,310 @@
+.shell { display: flex; min-height: 100vh; min-height: 100dvh; background: var(--bg); }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.content { width: 100%; max-width: 1200px; margin: 0 auto; padding: 28px 32px 48px; }
+@media (max-width: 719px) { .content { padding: 20px 16px 40px; } }
+
+.pageHead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 0 0 20px; flex-wrap: wrap; }
+.pageHead h1 { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 600; letter-spacing: -0.015em; color: var(--text); }
+.pageHead p { margin: 4px 0 0; font-size: 14px; color: var(--text-muted); }
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.sideCol {
+  min-width: 0;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  overflow: hidden;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cardSub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Definition lists */
+.detailList,
+.infoList {
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.detailList > div,
+.infoList > div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.infoList > div {
+  grid-template-columns: 104px 1fr;
+}
+
+.detailList > div:last-child,
+.infoList > div:last-child {
+  border-bottom: none;
+}
+
+.detailList dt,
+.infoList dt {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.detailList dd,
+.infoList dd {
+  margin: 0;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.infoList dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.monoSmall {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.readOnlyNote {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Info banner */
+.infoStrip {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--brand-soft);
+  border: 1px solid color-mix(in oklab, var(--brand) 25%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.infoStrip svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--brand-ink);
+}
+
+/* Environments table: flush with the card edges */
+.table {
+  width: calc(100% + 40px);
+  margin: 16px -20px 0;
+  border-collapse: collapse;
+  font-size: 14px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.table thead th {
+  height: 40px;
+  padding: 0 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  text-align: left;
+  white-space: nowrap;
+  background: color-mix(in oklab, var(--surface-2) 60%, var(--surface));
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody td {
+  padding: 12px 20px;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr {
+  transition: background-color 150ms ease;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in oklab, var(--surface-2) 60%, transparent);
+}
+
+.table tbody tr strong {
+  font-weight: 500;
+}
+
+.table td.mono {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.protected {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Members: role pills */
+.roleCounts {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.roleCounts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.roleCounts li:first-child {
+  color: var(--brand-ink);
+  background: var(--brand-soft);
+  border-color: transparent;
+}
+
+.roleCounts strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.roleCounts li:first-child strong {
+  color: inherit;
+}
+
+/* Ghost icon button */
+.copyButton {
+  flex: 0 0 auto;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.copyButton:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.copyButton:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@media (max-width: 1023px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 719px) {
+  .card {
+    padding: 16px;
+  }
+
+  .table {
+    width: calc(100% + 32px);
+    margin: 16px -16px 0;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .detailList > div,
+  .infoList > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    min-height: 0;
+  }
+}

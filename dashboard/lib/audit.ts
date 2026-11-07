@@ -11,7 +11,9 @@ export type Category =
   | "unarchived"
   | "sdk_key_created"
   | "sdk_key_revoked"
-  | "environment";
+  | "environment"
+  | "member"
+  | "project";
 
 export const CATEGORY_LABEL: Record<Category, string> = {
   created: "Created",
@@ -23,6 +25,8 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   sdk_key_created: "SDK key created",
   sdk_key_revoked: "SDK key revoked",
   environment: "Environment",
+  member: "Member",
+  project: "Project",
 };
 
 export interface AuditEvent {
@@ -45,6 +49,9 @@ interface AuditConfig {
   prefix?: string;
   key?: string;
   type?: string;
+  email?: string;
+  role?: string;
+  description?: string;
 }
 
 interface AuditRule {
@@ -80,6 +87,11 @@ export function categorize(e: AuditEvent): Category {
       return "sdk_key_created";
     case "sdk-key.revoke":
       return "sdk_key_revoked";
+    case "member.add":
+    case "member.role-change":
+      return "member";
+    case "project.create":
+      return "project";
     default: {
       if (e.action === "config.update" && e.before && e.after) {
         if (e.before.enabled === false && e.after.enabled === true) return "enabled";
@@ -127,7 +139,14 @@ export function summarize(e: AuditEvent): string {
       return `SDK key revoked${after?.name ? `: ${after.name}` : ""}`;
     case "environment":
       return "Created environment";
+    case "member":
+      return e.action === "member.add"
+        ? `Added ${after?.email ?? "a member"} as ${after?.role ?? "member"}`
+        : `Changed ${after?.email ?? "a member"} from ${before?.role ?? "?"} to ${after?.role ?? "?"}`;
+    case "project":
+      return `Created project ${after?.name ?? after?.key ?? ""}`.trim();
     default: {
+      if (e.action === "flag.update") return "Updated description";
       if (!before || !after) return "Updated flag";
       if (JSON.stringify(before.enabled) !== JSON.stringify(after.enabled)) {
         return after.enabled ? "Enabled flag" : "Disabled flag";

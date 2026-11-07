@@ -3,12 +3,18 @@
 //! The `Engine` holds the parsed config so evaluations never reparse JSON.
 //! `load` validates before swapping; `evaluate` never panics across the boundary.
 
-use switchyard_core::{EnvConfig, evaluate, validate};
+use switchyard_core::{evaluate, validate, EnvConfig};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Engine {
     config: Option<EnvConfig>,
+}
+
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[wasm_bindgen]

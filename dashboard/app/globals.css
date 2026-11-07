@@ -1,21 +1,156 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark mode follows the OS. Tailwind's dark: variant matches the same query. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
+
+/*
+ * Design tokens. One semantic layer; CSS modules and shadcn both read it.
+ * Never use raw hex in modules — add a token here instead.
+ *   --bg          page canvas            --surface    cards, sidebar, inputs
+ *   --surface-2   hover / subtle fills   --surface-3  pressed / stronger fills
+ *   --text        primary text           --text-muted secondary text (AA on all surfaces)
+ *   --brand       filled controls, focus --brand-ink  brand-coloured text/links
+ *   --brand-soft  tinted backgrounds     {success,warning,danger}{,-soft}
+ */
 :root {
-  --navy: #071a33;
-  --dark-navy: #041224;
-  --accent: #1677ff;
-  --accent-hover: #0f63d8;
-  --accent-active: #0b52b8;
-  --page-bg: #f6f9fc;
-  --border: #d8e1ec;
-  --muted: #64748b;
-  --error: #c81e1e;
-  --text: #0f1f36;
-  --success: #16a36a;
-  --radius-card: 20px;
-  --radius-control: 10px;
-  --sidebar-w: 260px;
+  color-scheme: light;
+
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --surface-3: #e9e9ec;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+
+  --text: #18181b;
+  --text-muted: #5f5f68;
+  --text-on-brand: #ffffff;
+
+  --brand: #0f63d8;
+  --brand-hover: #0b55bd;
+  --brand-pressed: #0a4aa3;
+  --brand-ink: #0d5ccb;
+  --brand-soft: #ebf2fe;
+
+  --success: #15803d;
+  --success-soft: #e8f6ee;
+  --warning: #9a5b06;
+  --warning-soft: #fdf3e0;
+  --danger: #c22020;
+  --danger-hover: #a51b1b;
+  --danger-soft: #fdeded;
+
+  --scrim: rgb(9 9 11 / 0.45);
+  --skeleton-a: #f1f1f3;
+  --skeleton-b: #e6e6e9;
+
+  /* Two-ring focus indicator: a surface-coloured gap, then a solid 2px ring
+     (brand on surface >= 3:1, WCAG 2.4.11/1.4.11). */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--brand);
+  --focus-ring-danger: 0 0 0 2px var(--surface), 0 0 0 4px var(--danger);
+
+  /* Non-text control contrast (>= 3:1 against surface): switch off-track,
+     selected-segment edge. */
+  --control-off: #8b8b94;
+  --border-control: #8b8b94;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.18), 0 2px 6px -2px rgb(16 24 40 / 0.08);
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-sm: 8px;
+  --control-h: 36px;
+  --sidebar-w: 232px;
+  --topbar-h: 56px;
+
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  /* shadcn/ui contract, mapped onto the tokens above. */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--brand);
+  --primary-foreground: var(--text-on-brand);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --input: var(--border-strong);
+  --ring: var(--brand);
+  --radius: 0.75rem;
+  --chart-1: var(--brand);
+  --chart-2: var(--success);
+  --chart-3: var(--warning);
+  --chart-4: var(--danger);
+  --chart-5: var(--text-muted);
+  /* Inset shell: the frame behind the panel sits a shade darker than the
+   * panel (--background); the active nav item lifts to a raised chip. */
+  --sidebar: #f0f0f2;
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--text-on-brand);
+  --sidebar-accent: #ffffff;
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--brand);
 }
 
-* {
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #0c0c0e;
+    --surface: #141417;
+    --surface-2: #1c1c20;
+    --surface-3: #26262b;
+    --border: #26262b;
+    --border-strong: #36363d;
+    --control-off: #6b6b75;
+    --border-control: #6b6b75;
+
+    --text: #ededf0;
+    --text-muted: #a0a0ab;
+
+    --brand: #2563eb;
+    --brand-hover: #3b74ee;
+    --brand-pressed: #1d4fc4;
+    --brand-ink: #7fabff;
+    --brand-soft: rgb(59 116 238 / 0.16);
+
+    --success: #4ade80;
+    --success-soft: rgb(74 222 128 / 0.12);
+    --warning: #fbbf24;
+    --warning-soft: rgb(251 191 36 / 0.12);
+    --danger: #f87171;
+    --danger-hover: #fca5a5;
+    --danger-soft: rgb(248 113 113 / 0.12);
+
+    --scrim: rgb(0 0 0 / 0.6);
+    --skeleton-a: #1c1c20;
+    --skeleton-b: #26262b;
+
+    --shadow-card: 0 0 0 0 transparent;
+    --shadow-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 0 0 1px var(--border);
+
+    --destructive-foreground: #18181b;
+
+    --sidebar: #060607;
+    --sidebar-accent: var(--surface-2);
+  }
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -26,9 +161,484 @@ body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Inter, Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  background: var(--page-bg);
-  color: var(--navy);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+code,
+kbd,
+.mono {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--brand) 22%, transparent);
+}
+
+/* Shared enter motion: quick fade-rise for dialogs, menus, expanders. */
+@keyframes sy-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sy-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ * Popups: selects and menus (components/ui/select.tsx, dropdown-menu.tsx).
+ * Glass panel that opens from its trigger; a single highlight pill glides
+ * between items (components/ui/popup-highlight.tsx). Base UI sets
+ * data-starting-style / data-ending-style, so motion is transition-based
+ * and interruptible.
+ * --------------------------------------------------------------------- */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --popup-bg: color-mix(in oklab, var(--surface) 84%, transparent);
+  --popup-edge: rgb(255 255 255 / 0.85);
+  --popup-highlight: color-mix(in oklab, var(--brand) 10%, transparent);
+  --popup-highlight-ring: color-mix(in oklab, var(--brand) 16%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --popup-bg: color-mix(in oklab, var(--surface-2) 78%, transparent);
+    --popup-edge: rgb(255 255 255 / 0.07);
+    --popup-highlight: color-mix(in oklab, var(--brand) 22%, transparent);
+    --popup-highlight-ring: color-mix(in oklab, var(--brand-ink) 18%, transparent);
+  }
+}
+
+.sy-popup {
+  position: relative;
+  isolation: isolate;
+  min-width: max(var(--anchor-width, 0px), 11rem);
+  max-height: min(var(--available-height, 360px), 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+  color: var(--text);
+  background: var(--popup-bg);
+  backdrop-filter: blur(18px) saturate(1.7);
+  -webkit-backdrop-filter: blur(18px) saturate(1.7);
+  border: 1px solid color-mix(in oklab, var(--border-strong) 75%, transparent);
+  border-radius: 16px;
+  box-shadow: var(--shadow-pop), inset 0 1px 0 0 var(--popup-edge);
+  outline: none;
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity 160ms ease-out,
+    transform 260ms var(--ease-out-expo),
+    filter 200ms ease-out;
+}
+
+.sy-popup[data-starting-style] {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
+  filter: blur(6px);
+}
+
+.sy-popup[data-side="top"][data-starting-style] {
+  transform: translateY(6px) scale(0.96);
+}
+
+.sy-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.98);
+  filter: blur(2px);
+  transition-duration: 110ms;
+  transition-timing-function: ease-in;
+}
+
+.sy-popup-label {
+  padding: 6px 8px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.sy-popup-sep {
+  height: 1px;
+  margin: 4px -4px;
+  background: var(--border);
+}
+
+.sy-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 28px 0 8px;
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--text);
+  border-radius: 10px;
+  cursor: default;
+  user-select: none;
+  outline: none;
+  white-space: nowrap;
+  transition: color 120ms ease;
+}
+
+.sy-item[data-slot="dropdown-menu-item"] {
+  padding-right: 8px;
+}
+
+.sy-item svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: color 120ms ease;
+}
+
+.sy-item[data-highlighted] svg {
+  color: var(--brand-ink);
+}
+
+.sy-item[data-variant="destructive"],
+.sy-item[data-variant="destructive"] svg {
+  color: var(--danger);
+}
+
+.sy-item[data-disabled] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.sy-item-hint {
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sy-check {
+  position: absolute;
+  right: 8px;
+  display: flex;
+}
+
+.sy-check svg {
+  color: var(--brand-ink);
+}
+
+/* The gliding highlight pill. Positioned by PopupHighlight. */
+.sy-highlight {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  border-radius: 10px;
+  background: var(--popup-highlight);
+  box-shadow: inset 0 0 0 1px var(--popup-highlight-ring);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+  transition:
+    transform 220ms var(--ease-out-expo),
+    height 220ms var(--ease-out-expo),
+    width 220ms var(--ease-out-expo),
+    opacity 140ms ease;
+}
+
+.sy-highlight[data-variant="destructive"] {
+  background: var(--danger-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--danger) 20%, transparent);
+}
+
+/* Select trigger. Variants: field (default) and ghost (top bar). */
+.sy-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--control-h);
+  padding: 0 10px 0 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.sy-trigger:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--text) 25%, var(--border-strong));
+}
+
+.sy-trigger:focus-visible,
+.sy-trigger[data-popup-open] {
+  border-color: var(--brand);
+  box-shadow: var(--focus-ring);
+}
+
+.sy-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sy-trigger[data-variant="ghost"] {
+  height: 32px;
+  padding: 0 8px;
+  font-weight: 500;
+  background: transparent;
+  border-color: transparent;
+}
+
+.sy-trigger[data-variant="ghost"]:hover:not(:disabled),
+.sy-trigger[data-variant="ghost"][data-popup-open] {
+  background: var(--surface-2);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.sy-trigger[data-variant="ghost"]:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.sy-trigger-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sy-trigger-chevron {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  transition: transform 220ms var(--ease-out-expo);
+}
+
+.sy-trigger[data-popup-open] .sy-trigger-chevron {
+  transform: rotate(180deg);
+}
+
+/* Tooltips: a compact high-contrast chip. Inverted in light mode for
+ * legibility over any content; raised glass in dark mode. */
+.sy-tooltip {
+  max-width: 280px;
+  padding: 5px 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #fafafa;
+  background: rgb(24 24 27 / 0.92);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px -6px rgb(0 0 0 / 0.3), inset 0 1px 0 0 rgb(255 255 255 / 0.08);
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity 140ms ease-out,
+    transform 200ms var(--ease-out-expo),
+    filter 160ms ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sy-tooltip {
+    color: var(--text);
+    background: color-mix(in oklab, var(--surface-3) 90%, transparent);
+    box-shadow: 0 8px 24px -6px rgb(0 0 0 / 0.6), 0 0 0 1px var(--border-strong), inset 0 1px 0 0 rgb(255 255 255 / 0.06);
+  }
+}
+
+.sy-tooltip[data-starting-style],
+.sy-tooltip[data-ending-style] {
+  opacity: 0;
+  transform: translateY(3px) scale(0.96);
+  filter: blur(3px);
+}
+
+.sy-tooltip[data-side="bottom"][data-starting-style],
+.sy-tooltip[data-side="bottom"][data-ending-style] {
+  transform: translateY(-3px) scale(0.96);
+}
+
+.sy-tooltip[data-ending-style] {
+  transition-duration: 90ms;
+  transition-timing-function: ease-in;
+}
+
+/* Moving between neighbouring tooltips: swap without replaying motion. */
+.sy-tooltip[data-instant] {
+  transition-duration: 0ms;
+}
+
+/* Dialogs (components/Modal.tsx on Base UI Dialog). The backdrop blurs the
+ * app behind; the panel rises out of a soft blur. Both animate out too. */
+.sy-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--scrim);
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  transition: opacity 220ms ease-out;
+}
+
+.sy-backdrop[data-starting-style],
+.sy-backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+.sy-backdrop[data-ending-style] {
+  transition-duration: 160ms;
+}
+
+.sy-dialog {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  color: var(--text);
+  background: color-mix(in oklab, var(--surface) 94%, transparent);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid color-mix(in oklab, var(--border-strong) 80%, transparent);
+  border-radius: 20px;
+  box-shadow: var(--shadow-pop), 0 32px 64px -24px rgb(0 0 0 / 0.35), inset 0 1px 0 0 var(--popup-edge);
+  outline: none;
+  transition:
+    opacity 200ms ease-out,
+    transform 320ms var(--ease-out-expo),
+    filter 240ms ease-out;
+}
+
+.sy-dialog[data-wide] {
+  width: min(540px, calc(100vw - 32px));
+}
+
+.sy-dialog[data-starting-style] {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  filter: blur(8px);
+}
+
+.sy-dialog[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.98);
+  filter: blur(4px);
+  transition-duration: 150ms;
+  transition-timing-function: ease-in;
+}
+
+/* Small status dot used inside triggers and items (environments). */
+.sy-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+
+.sy-dot[data-tone="warning"] {
+  background: var(--warning);
+  box-shadow: 0 0 0 3px var(--warning-soft);
+}
+
+.sy-dot[data-tone="off"] {
+  background: var(--text-muted);
+  box-shadow: 0 0 0 3px var(--surface-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+}
+
+/* Windows High Contrast / forced colors drops box-shadow, which is how every
+   focus ring here is drawn. Fall back to a system-colour outline. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight !important;
+    outline-offset: 2px;
+  }
 }

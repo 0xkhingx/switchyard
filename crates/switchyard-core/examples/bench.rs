@@ -2,7 +2,7 @@
 //! Run: cargo run --release -p switchyard-core --example bench
 use std::collections::HashMap;
 use std::time::Instant;
-use switchyard_core::{AttrValue, Context, EnvConfig, bucket, evaluate};
+use switchyard_core::{bucket, evaluate, AttrValue, Context, EnvConfig};
 
 fn main() {
     let config: EnvConfig = serde_json::from_value(serde_json::json!({
@@ -24,10 +24,12 @@ fn main() {
     .unwrap();
     let ctx = Context {
         key: "user-4242".to_string(),
-        attributes: [("country".to_string(), AttrValue::Str("US".into())),
-                     ("plan".to_string(), AttrValue::Str("pro".into()))]
-            .into_iter()
-            .collect::<HashMap<_, _>>(),
+        attributes: [
+            ("country".to_string(), AttrValue::Str("US".into())),
+            ("plan".to_string(), AttrValue::Str("pro".into())),
+        ]
+        .into_iter()
+        .collect::<HashMap<_, _>>(),
     };
     // Warm up, then time N evaluations (rollout path: hash + bucket + serve).
     for _ in 0..1000 {
@@ -39,12 +41,18 @@ fn main() {
         std::hint::black_box(evaluate(&config, "new-checkout", &ctx));
     }
     let per = t.elapsed().as_nanos() as f64 / n as f64;
-    println!("native evaluate: {per:.0} ns/eval ({} evals/sec)", (1e9 / per) as u64);
+    println!(
+        "native evaluate: {per:.0} ns/eval ({} evals/sec)",
+        (1e9 / per) as u64
+    );
 
     let t = Instant::now();
     for i in 0..n {
         std::hint::black_box(bucket("new-checkout", &format!("user-{i}")));
     }
     let per = t.elapsed().as_nanos() as f64 / n as f64;
-    println!("native bucket:   {per:.0} ns/hash ({:.1}M hashes/sec)", 1e3 / per);
+    println!(
+        "native bucket:   {per:.0} ns/hash ({:.1}M hashes/sec)",
+        1e3 / per
+    );
 }

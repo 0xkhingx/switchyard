@@ -105,6 +105,22 @@ test("invalid config is rejected, previous config stays active", async () => {
   }
 });
 
+test("ready() stays unsuccessful when the initial config is invalid", async () => {
+  const { server, state, port } = await startStub();
+  state.raw = '{"version": 1, "flags": {"x": "not a flag"}}';
+  const client = createClient({
+    sdkKey: "sy_test", baseUrl: `http://127.0.0.1:${port}`,
+    pollIntervalMs: 1000, readyTimeoutMs: 200,
+  });
+  try {
+    assert.equal(await client.ready(), false);
+    assert.equal(client.boolVariation("new-checkout", { key: "u-1" }, false), false);
+  } finally {
+    client.close();
+    await stop(server);
+  }
+});
+
 test("ready() resolves false when no config can load; variations return defaults", async () => {
   const client = createClient({
     sdkKey: "sy_test", baseUrl: "http://127.0.0.1:1", pollIntervalMs: 1000, readyTimeoutMs: 800,
@@ -135,4 +151,82 @@ test("variation calls never throw (unknown flag, wrong type, bad context)", asyn
   } finally {
     await stop(server);
   }
+});
+
+test("a hung config request times out (fetchTimeoutMs) instead of stalling", async () => {
+  // Server accepts the request but never answers.
+  const server = http.createServer(() => { /* never respond */ });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const port = server.address().port;
+  const client = createClient({
+    sdkKey: "sy_test", baseUrl: `http://127.0.0.1:${port}`,
+    pollIntervalMs: 1000, readyTimeoutMs: 20_000, fetchTimeoutMs: 200,
+  });
+  try {
+    const started = Date.now();
+    assert.equal(await client.ready(), false);
+    assert.ok(Date.now() - started < 2000, "request aborted by fetch timeout, not ready timeout");
+  } finally {
+    client.close();
+    await stop(server);
+  }
+});
+
+test("401/403 backs off to authRetryMs and warns once (no hot retry)", async () => {
+  let hits = 0;
+  const server = http.createServer((req, res) => {
+    hits += 1;
+    res.writeHead(hits % 2 ? 401 : 403, { Connection: "close" });
+    res.end();
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  const port = server.address().port;
+  const warnings = [];
+  const origWarn = console.warn;
+  console.warn = (m) => warnings.push(String(m));
+  let client;
+  try {
+    client = createClient({
+      sdkKey: "sy_bad", baseUrl: `http://127.0.0.1:${port}`, pollIntervalMs: 1000,
+    });
+    assert.equal(await client.ready(), false);
+    await sleep(2500); // a normal 1s poll/backoff would have retried by now
+    assert.equal(hits, 1, "default authRetryMs (5 min) prevents fast retries");
+    client.close();
+
+    // A configurable, short authRetryMs retries, but still warns only once.
+    hits = 0;
+    warnings.length = 0;
+    client = createClient({
+      sdkKey: "sy_bad", baseUrl: `http://127.0.0.1:${port}`, pollIntervalMs: 1000, authRetryMs: 1000,
+    });
+    await sleep(2500);
+    assert.ok(hits >= 2 && hits <= 3, `retries at authRetryMs (hits=${hits})`);
+    assert.equal(warnings.filter((w) => w.includes("rejected")).length, 1, "auth warning logged once");
+  } finally {
+    console.warn = origWarn;
+    client?.close();
+    await stop(server);
+  }
+});
+
+test("close() clears the ready timeout so the process can exit", async () => {
+  const { spawn } = await import("node:child_process");
+  const clientUrl = new URL("./client.js", import.meta.url).href;
+  const script = `
+    const { createClient } = await import(${JSON.stringify(clientUrl)});
+    const c = createClient({ sdkKey: "sy_test", baseUrl: "http://127.0.0.1:1", readyTimeoutMs: 60000 });
+    c.close();
+    console.log("ready:" + (await c.ready()));
+  `;
+  const started = Date.now();
+  const child = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: ["ignore", "pipe", "pipe"] });
+  let out = "";
+  child.stdout.on("data", (d) => { out += d; });
+  const killer = setTimeout(() => child.kill(), 15_000);
+  const code = await new Promise((r) => child.on("exit", r));
+  clearTimeout(killer);
+  assert.equal(code, 0, "child exited on its own");
+  assert.ok(Date.now() - started < 10_000, "exit was not held by the 60s ready timer");
+  assert.match(out, /ready:false/, "pending ready() resolves false on close");
 });

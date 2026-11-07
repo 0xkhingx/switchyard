@@ -9,11 +9,13 @@ changes within one poll interval (2s).
 # one-time: build the web-target WASM the page loads
 wasm-pack build crates/switchyard-wasm --target web --out-dir ../../sdk/js/pkg-web
 
-# serve the repo (demo at /demo/)
+# serve the demo (127.0.0.1 only; exposes just demo/ and sdk/js/pkg-web/)
 node demo/server.mjs
 ```
 
 Open `http://localhost:8081/demo/`, paste a **development** SDK key
-(dashboard → SDK Keys), and press Connect. The key lives in page memory
-only. Toggle `demo-banner` off in the dashboard → the banner vanishes here
+(dashboard → SDK Keys) into the form, and press Connect. The key is kept in
+this tab's `sessionStorage` only (so a reload reconnects with one click) and
+is never read from or written to the URL — there is no `?key=` parameter.
+Toggle `demo-banner` off in the dashboard → the banner vanishes here
 within ~2 seconds.

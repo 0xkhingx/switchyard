@@ -1,46 +1,54 @@
-/* Toggle: a real checkbox restyled as a switch (44px+ hit area via padding). */
+/* Toggle: a real checkbox restyled as a switch. */
 .toggleInput {
   appearance: none;
   -webkit-appearance: none;
-  width: 46px;
-  height: 26px;
+  width: 36px;
+  height: 20px;
   margin: 0;
   border-radius: 999px;
-  background: #c3cfdd;
+  background: var(--control-off);
   position: relative;
   cursor: pointer;
-  transition: background-color 175ms ease;
+  transition: background-color 150ms ease;
   flex: 0 0 auto;
 }
 
 .toggleInput::after {
   content: "";
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(7, 26, 51, 0.3);
-  transition: transform 175ms ease;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: transform 150ms ease;
+}
+
+.toggleInput:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--text) 25%, var(--control-off));
 }
 
 .toggleInput:checked {
-  background: var(--accent);
+  background: var(--brand);
+}
+
+.toggleInput:checked:hover:not(:disabled) {
+  background: var(--brand-hover);
 }
 
 .toggleInput:checked::after {
-  transform: translateX(20px);
+  transform: translateX(16px);
 }
 
 .toggleInput:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .toggleInput:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -48,24 +56,26 @@
   display: inline-flex;
 }
 
-/* Type badge: Boolean blue-tinted, String warm neutral. No Integer in v1. */
+/* Type badge: Boolean brand-tinted, String warm. No Integer in v1. */
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
   font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 7px;
+  font-weight: 500;
+  border-radius: 999px;
   white-space: nowrap;
 }
 
 .badgeBool {
-  color: #0f63d8;
-  background: #e3efff;
+  color: var(--brand-ink);
+  background: var(--brand-soft);
 }
 
 .badgeString {
-  color: #92600a;
-  background: #fdf0d8;
+  color: var(--warning);
+  background: var(--warning-soft);
 }
 
 /* Pagination */
@@ -74,28 +84,37 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 4px 2px;
-  font-size: 13.5px;
-  color: var(--muted);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
   flex-wrap: wrap;
 }
 
 .pageButtons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .pageButton {
-  width: 34px;
-  height: 34px;
-  font-size: 18px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
   line-height: 1;
   color: var(--text);
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: var(--surface-2);
 }
 
 .pageButton:disabled {
@@ -104,28 +123,29 @@
 }
 
 .pageButton:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .pageCurrent {
-  min-width: 34px;
-  height: 34px;
+  min-width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  color: #fff;
-  background: var(--accent);
-  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-3);
+  border-radius: var(--radius-sm);
 }
 
 /* Skeleton rows for table loading state. */
 .skeletonRow {
-  height: 56px;
-  border-radius: 10px;
+  height: 44px;
+  border-radius: var(--radius-control);
   margin: 8px 0;
-  background: linear-gradient(90deg, #eef3f8 25%, #e2eaf3 50%, #eef3f8 75%);
+  background: linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
@@ -142,21 +162,35 @@
 /* Empty + error states */
 .stateCard {
   text-align: center;
-  padding: 36px 24px;
+  padding: 48px 24px;
+}
+
+.stateIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 14px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
 }
 
 .stateCard h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
 }
 
 .stateCard p {
-  margin: 8px auto 0;
-  max-width: 420px;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.6;
+  margin: 6px auto 0;
+  max-width: 380px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
 }
 
 .stateCard .primaryButton {
@@ -164,28 +198,38 @@
 }
 
 .primaryButton {
-  height: 44px;
-  padding: 0 22px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--accent);
-  border: none;
+  height: var(--control-h);
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-on-brand);
+  background: var(--brand);
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
   cursor: pointer;
-  transition: background-color 175ms ease;
+  transition: background-color 150ms ease, transform 100ms ease;
 }
 
 .primaryButton:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--brand-hover);
+}
+
+.primaryButton:active:not(:disabled) {
+  background: var(--brand-pressed);
+  transform: scale(0.98);
 }
 
 .primaryButton:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .primaryButton:disabled {
-  background: #93bcfb;
+  opacity: 0.5;
   cursor: not-allowed;
 }

@@ -1,134 +1,112 @@
 .bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--topbar-h);
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  padding: 14px 0;
+  padding: 0 24px;
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .selectors {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.selectWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
-  padding: 6px 12px;
-  min-width: 170px;
-}
-
-.selectWrap:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18);
-}
-
-.selectLabel {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-
-.select {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  padding: 2px 0;
-  cursor: pointer;
-}
-
-.envSelectRow {
-  display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.envSelectRow .select {
+  gap: 2px;
+  min-width: 0;
   flex: 1;
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--success);
-  flex: 0 0 8px;
+.sep {
+  color: var(--border-strong);
+  font-size: 18px;
+  font-weight: 300;
+  padding: 0 4px;
+  user-select: none;
+}
+
+/* Sizing only: the shared .sy-trigger (ghost variant) owns the visuals. */
+.select {
+  max-width: 260px;
+  min-width: 0;
 }
 
 .lock {
-  display: flex;
-  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  margin-left: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .right {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.kbd {
-  font-size: 13px;
-  color: var(--muted);
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 7px 12px;
-  cursor: default;
-}
-
-.kbd:disabled {
-  cursor: default;
+  gap: 8px;
 }
 
 .userAvatar {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--navy);
-  background: #dbe6f5;
-  border: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
   border-radius: 50%;
   cursor: pointer;
+  transition: box-shadow 120ms ease;
+}
+
+.userAvatar:hover {
+  box-shadow: 0 0 0 3px var(--surface-2);
 }
 
 .userAvatar:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
-.hamburger {
-  display: none;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-control);
-  color: var(--text);
-  cursor: pointer;
+/* Layout only: shadcn's SidebarTrigger (ghost Button) owns the visuals. */
+.sidebarTrigger {
+  margin-left: -6px;
 }
 
-@media (max-width: 1023px) {
-  .hamburger {
-    display: flex;
+@media (max-width: 719px) {
+  .bar {
+    padding: 0 16px;
   }
 
-  .kbd {
+  .lock span {
     display: none;
+  }
+
+  .select {
+    max-width: 34vw;
   }
 }

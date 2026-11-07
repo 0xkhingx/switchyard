@@ -34,29 +34,40 @@ impl Role {
     }
 }
 
-pub async fn membership(pool: &PgPool, user_id: Uuid, project_id: Uuid) -> Result<Option<Role>, ApiError> {
-    let row: Option<(String,)> = sqlx::query_as(
-        "SELECT role FROM memberships WHERE project_id = $1 AND user_id = $2",
-    )
-    .bind(project_id)
-    .bind(user_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(ApiError::internal)?;
-    Ok(row.and_then(|(r,)| Role::parse(&r)))
-}
-
-/// Require at least `min` role on the project, else 403 (404 would leak existence;
-/// we use 403 uniformly once the project is known to exist).
-pub async fn require_role(
+pub async fn membership(
     pool: &PgPool,
     user_id: Uuid,
     project_id: Uuid,
-    min: Role,
-) -> Result<(), ApiError> {
-    match membership(pool, user_id, project_id).await? {
-        Some(r) if r >= min => Ok(()),
-        _ => Err(ApiError::Forbidden),
+) -> Result<Option<Role>, ApiError> {
+    let row: Option<(String,)> =
+        sqlx::query_as("SELECT role FROM memberships WHERE project_id = $1 AND user_id = $2")
+            .bind(project_id)
+            .bind(user_id)
+            .fetch_optional(pool)
+            .await
+            .map_err(ApiError::internal)?;
+    Ok(row.and_then(|(r,)| Role::parse(&r)))
+}
+
+/// The caller's role on the project. Non-members get 404 (the same answer as
+/// a project that does not exist), so membership is checked before anything
+/// else about the project is revealed.
+pub async fn require_member(
+    pool: &PgPool,
+    user_id: Uuid,
+    project_id: Uuid,
+) -> Result<Role, ApiError> {
+    membership(pool, user_id, project_id)
+        .await?
+        .ok_or_else(|| ApiError::NotFound("project not found".into()))
+}
+
+/// Members below `min` get 403: they already know the project exists.
+pub fn require(role: Role, min: Role) -> Result<(), ApiError> {
+    if role >= min {
+        Ok(())
+    } else {
+        Err(ApiError::Forbidden)
     }
 }
 
@@ -71,5 +82,10 @@ mod tests {
         assert!(Role::Viewer < Role::Admin);
         assert_eq!(Role::parse("admin"), Some(Role::Admin));
         assert_eq!(Role::parse("owner"), None);
+        assert!(require(Role::Admin, Role::Editor).is_ok());
+        assert!(matches!(
+            require(Role::Viewer, Role::Editor),
+            Err(ApiError::Forbidden)
+        ));
     }
 }

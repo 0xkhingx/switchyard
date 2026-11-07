@@ -49,10 +49,17 @@ for k in ["u-1","u-2","u-3","u-4","u-5","u-6","u-7","u-8"]:
 
 def cond_match(cond, ctx):
     attr = cond["attribute"]
-    val = ctx["key"] if attr == "key" else ctx.get("attributes", {}).get(attr)
+    # `attributes` may be absent or null (-> {}); a null attribute value is
+    # treated exactly like a missing attribute: it never matches.
+    val = ctx["key"] if attr == "key" else (ctx.get("attributes") or {}).get(attr)
     if val is None: return False
     op, vs = cond["op"], cond["values"]
-    def same(a,b): return type(a)==type(b) and a==b
+    def is_num(x): return isinstance(x,(int,float)) and not isinstance(x,bool)
+    def same(a,b):
+        # Numbers compare numerically (30 == 30.0); bool stays distinct from
+        # numbers (True != 1); everything else is type-strict.
+        if is_num(a) and is_num(b): return a == b
+        return type(a)==type(b) and a==b
     if op=="equals": return same(val, vs[0])
     if op=="notEquals": return not same(val, vs[0])
     if op=="in": return any(same(val,v) for v in vs)

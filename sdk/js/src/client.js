@@ -5,11 +5,21 @@
 // - On fetch errors it keeps serving the last good config with exponential
 //   backoff + jitter (capped at 60s). Invalid configs are rejected, keeping
 //   the previous one. close() stops timers and in-flight requests.
+// - Each config request is bounded by fetchTimeoutMs (default 10s).
+// - 401/403 means the SDK key is wrong or revoked: warn once and retry only
+//   every authRetryMs (default 5 minutes) instead of hot-retrying.
 import { Engine } from "../pkg-nodejs/switchyard_wasm.js";
 
 const ERROR_EVAL = { value: null, reason: "ERROR", ruleId: null };
 
-export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTimeoutMs = 5000 }) {
+export function createClient({
+  sdkKey,
+  baseUrl,
+  pollIntervalMs = 5000,
+  readyTimeoutMs = 5000,
+  fetchTimeoutMs = 10_000,
+  authRetryMs = 300_000,
+}) {
   if (!sdkKey) throw new Error("sdkKey is required");
   if (!baseUrl) throw new Error("baseUrl is required");
   const pollMs = Math.max(1000, pollIntervalMs);
@@ -17,6 +27,7 @@ export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTime
 
   let etag = null;
   let timer = null;
+  let readyTimer = null;
   let closed = false;
   let aborter = null;
   let backoffMs = pollMs;
@@ -29,6 +40,7 @@ export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTime
   function markReady(ok) {
     if (!ready) {
       ready = true;
+      clearTimeout(readyTimer);
       readyResolve(ok);
     }
   }
@@ -54,16 +66,49 @@ export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTime
     schedule(delay);
   }
 
+  // Signal that aborts on close() or after fetchTimeoutMs, whichever is first.
+  // Uses AbortSignal.any/timeout when available; otherwise a manual timer.
+  function requestSignal() {
+    const ms = Math.max(1, fetchTimeoutMs);
+    if (typeof AbortSignal.any === "function" && typeof AbortSignal.timeout === "function") {
+      return { signal: AbortSignal.any([aborter.signal, AbortSignal.timeout(ms)]), done() {} };
+    }
+    const combined = new AbortController();
+    const onAbort = () => combined.abort(aborter.signal.reason);
+    aborter.signal.addEventListener("abort", onAbort, { once: true });
+    const t = setTimeout(() => {
+      const reason = typeof DOMException === "function"
+        ? new DOMException("config request timed out", "TimeoutError")
+        : Object.assign(new Error("config request timed out"), { name: "TimeoutError" });
+      combined.abort(reason);
+    }, ms);
+    return {
+      signal: combined.signal,
+      done() {
+        clearTimeout(t);
+        aborter.signal.removeEventListener("abort", onAbort);
+      },
+    };
+  }
+
   async function tick() {
     if (closed) return;
     aborter = new AbortController();
+    const req = requestSignal();
     try {
       const headers = { Authorization: `Bearer ${sdkKey}` };
       if (etag) headers["If-None-Match"] = etag;
       const res = await fetch(`${baseUrl}/sdk/v1/config`, {
         headers,
-        signal: aborter.signal,
+        signal: req.signal,
       });
+      if (res.status === 401 || res.status === 403) {
+        // Bad or revoked key: retrying fast will not help. Warn once, back off long.
+        warnOnce("auth", `switchyard: config request rejected (${res.status}); check the SDK key. Retrying every ${Math.round(authRetryMs / 1000)}s`);
+        markReady(false);
+        schedule(Math.max(1000, authRetryMs));
+        return;
+      }
       if (res.status === 304) {
         backoffMs = pollMs;
         markReady(true);
@@ -79,7 +124,6 @@ export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTime
         // Invalid config: reject it, keep serving the previous one.
         warnOnce("invalid-config", `switchyard: rejecting invalid config (${e?.message ?? e})`);
         backoffMs = pollMs;
-        markReady(true);
         schedule(pollMs);
         return;
       }
@@ -93,16 +137,19 @@ export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTime
       }
       schedule(pollMs);
     } catch (e) {
-      if (closed || e?.name === "AbortError") return;
+      // Aborts from close() stop here; timeouts fall through to backoff.
+      if (closed) return;
       // Offline or server down: keep last good config, retry with backoff.
       markReady(false);
       backoff();
+    } finally {
+      req.done();
     }
   }
 
   // Kick off immediately; ready() resolves true on first load, false on timeout.
   tick();
-  setTimeout(() => markReady(false), readyTimeoutMs);
+  readyTimer = setTimeout(() => markReady(false), readyTimeoutMs);
 
   function variationDetail(flagKey, context) {
     try {
@@ -140,6 +187,8 @@ export function createClient({ sdkKey, baseUrl, pollIntervalMs = 5000, readyTime
     close() {
       closed = true;
       clearTimeout(timer);
+      clearTimeout(readyTimer);
+      markReady(false);
       try { aborter?.abort(); } catch { /* already settled */ }
     },
   };

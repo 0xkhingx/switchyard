@@ -45,10 +45,17 @@ def bucket(flag_key, ckey):
 
 def cond_match(cond, ctx):
     attr = cond["attribute"]
-    val = ctx["key"] if attr == "key" else ctx.get("attributes", {}).get(attr)
+    # `attributes` may be absent or null (-> {}); a null attribute value is
+    # treated exactly like a missing attribute: it never matches.
+    val = ctx["key"] if attr == "key" else (ctx.get("attributes") or {}).get(attr)
     if val is None: return False
     op, vs = cond["op"], cond["values"]
-    def same(a,b): return type(a)==type(b) and a==b
+    def is_num(x): return isinstance(x,(int,float)) and not isinstance(x,bool)
+    def same(a,b):
+        # Numbers compare numerically (30 == 30.0); bool stays distinct from
+        # numbers (True != 1); everything else is type-strict.
+        if is_num(a) and is_num(b): return a == b
+        return type(a)==type(b) and a==b
     if op=="equals": return same(val, vs[0])
     if op=="notEquals": return not same(val, vs[0])
     if op=="in": return any(same(val,v) for v in vs)
@@ -85,7 +92,18 @@ CONFIG = {"version": 7, "flags": {
       {"id":"r2","conditions":[{"attribute":"plan","op":"equals","values":["pro"]}],
        "serve":{"rollout":[{"value":True,"weight":2000},{"value":False,"weight":8000}]}}],
     "fallthrough":{"fixed":False}},
-  "banner-text": {"type":"string","enabled":False,"offValue":"Welcome","rules":[],"fallthrough":{"fixed":"Spring sale"}}
+  "banner-text": {"type":"string","enabled":False,"offValue":"Welcome","rules":[],"fallthrough":{"fixed":"Spring sale"}},
+  # Typing edge cases (SPEC.md 3.3): numeric equality across int/float,
+  # bool distinct from numbers, null attribute == missing attribute.
+  "typed": {"type":"string","enabled":True,"offValue":"off",
+    "rules":[
+      {"id":"age30","conditions":[{"attribute":"age","op":"equals","values":[30]}],"serve":{"fixed":"age30"}},
+      {"id":"kg72","conditions":[{"attribute":"kg","op":"in","values":[71.5, 72.0]}],"serve":{"fixed":"kg72"}},
+      {"id":"one","conditions":[{"attribute":"n","op":"equals","values":[1]}],"serve":{"fixed":"one"}},
+      {"id":"beta","conditions":[{"attribute":"beta","op":"equals","values":[True]}],"serve":{"fixed":"beta"}},
+      {"id":"notgold","conditions":[{"attribute":"tier","op":"notEquals","values":["gold"]}],"serve":{"fixed":"notgold"}},
+      {"id":"notin","conditions":[{"attribute":"region","op":"notIn","values":["eu"]}],"serve":{"fixed":"notin"}}],
+    "fallthrough":{"fixed":"default"}}
 }}
 
 out = pathlib.Path(__file__).parent / "vectors"
@@ -123,9 +141,38 @@ cases = [
    "context": {"key": "", "attributes": {"country": "US", "plan": "pro"}}},
   {"flag": "banner-text", "context": {"key": "u-1", "attributes": {}}},
   {"flag": "nope", "context": {"key": "u-1", "attributes": {}}},
+  # (a) numbers compare numerically; bool is not a number
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"age": 30.0}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"age": 30}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"age": 30.5}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"kg": 72}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"n": 1.0}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"n": True}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"beta": 1}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"beta": True}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"age": "30"}}},
+  # (b) null attribute behaves as missing (never matches, even notEquals/notIn)
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"tier": None, "region": None}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"tier": "silver"}}},
+  {"flag": "typed", "context": {"key": "u-1", "attributes": {"tier": None, "region": "us"}}},
+  {"flag": "new-checkout",
+   "context": {"key": "u-2", "attributes": {"country": None, "plan": "pro"}}},
+  # (c) attributes field absent (or null) defaults to {}
+  {"flag": "new-checkout", "context": {"key": "u-4"}},
+  {"flag": "typed", "context": {"key": "u-1"}},
+  {"flag": "new-checkout", "context": {"key": "u-4", "attributes": None}},
 ]
 for c in cases:
     c["expected"] = evaluate(CONFIG, c["flag"], c["context"])
+
+# Pin the intent of the typing edge cases so a regression in the oracle itself
+# is caught here rather than silently baked into the vectors.
+typed = [c["expected"]["value"] for c in cases if c["flag"] == "typed"]
+assert typed == ["age30", "age30", "default", "kg72", "one", "default", "default",
+                 "beta", "default", "default", "notgold", "notin", "default"], typed
+assert cases[19]["expected"] == {"value": True, "reason": "RULE_MATCH", "ruleId": "r2"}
+assert cases[20]["expected"]["reason"] == "FALLTHROUGH"
+assert cases[22]["expected"]["reason"] == "FALLTHROUGH"
 (out / "evaluations.json").write_text(
     json.dumps({"config": CONFIG, "cases": cases}, indent=2) + "\n")
 

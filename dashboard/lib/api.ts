@@ -11,8 +11,33 @@ export class ApiError extends Error {
   }
 }
 
+export const OFFLINE_MESSAGE = "Unable to reach Switchyard. Check your connection and try again.";
+
+/** Human message for a failed response. The server's own text is kept for
+ *  4xx validation errors (it names the field); everything else is mapped. */
+function messageFor(status: number, body: unknown): string {
+  const server =
+    body && typeof body === "object" && typeof (body as { error?: unknown }).error === "string"
+      ? ((body as { error: string }).error.trim() || null)
+      : null;
+  if (status === 403) return "You don't have permission to do this.";
+  if (status === 409) return "Someone else changed this. Reload to see the latest version.";
+  if (status >= 500) return OFFLINE_MESSAGE;
+  return server ?? "That request wasn't accepted. Check the values and try again.";
+}
+
+/** fetch that turns network failures (offline, DNS, CORS, server down) into
+ *  an ApiError with a human message instead of "Failed to fetch". */
+async function send(url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    throw new ApiError(0, OFFLINE_MESSAGE);
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await send(`${API_URL}${path}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     ...init,
@@ -20,9 +45,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (res.status === 204) return undefined as T;
   const body = await res.json().catch(() => null);
   if (!res.ok) {
-    const message =
-      (body && (body.error as string)) || `Request failed (${res.status})`;
-    throw new ApiError(res.status, message);
+    // 422 carries structured details the editor parses; keep its raw body.
+    if (res.status === 422 && body && typeof body === "object" && "errors" in body) {
+      throw new ApiError(res.status, JSON.stringify(body));
+    }
+    throw new ApiError(res.status, messageFor(res.status, body));
   }
   return body as T;
 }
@@ -39,10 +66,10 @@ export const apiDelete = (path: string) =>
 
 /** GET returning { data, total } via the X-Total-Count header (audit list). */
 export async function apiGetPaged<T>(path: string): Promise<{ data: T; total: number }> {
-  const res = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  const res = await send(`${API_URL}${path}`, { credentials: "include" });
   const body = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new ApiError(res.status, (body && body.error) || `Request failed (${res.status})`);
+    throw new ApiError(res.status, messageFor(res.status, body));
   }
   return { data: body as T, total: Number(res.headers.get("x-total-count") ?? 0) };
 }
