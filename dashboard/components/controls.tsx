@@ -2,8 +2,11 @@
 
 import { NavArrowLeftIcon, NavArrowRightIcon } from "./icons";
 import styles from "./controls.module.css";
+import { Hint } from "@/components/ui/tooltip";
 
-// Accessible switch. Renders a real checkbox so keyboard + screen readers work.
+// Accessible switch: a real checkbox exposed as role="switch" (announced
+// as on/off). Pass a stable `label` naming what it controls, e.g.
+// "new-banner in Production" — never an action that flips with state.
 export function Toggle({
   checked,
   onChange,
@@ -20,6 +23,7 @@ export function Toggle({
   const control = (
     <input
       type="checkbox"
+      role="switch"
       className={styles.toggleInput}
       checked={checked}
       disabled={disabled}
@@ -29,9 +33,9 @@ export function Toggle({
   );
   if (disabled && disabledReason) {
     return (
-      <span className={styles.toggleDisabledWrap} title={disabledReason}>
-        {control}
-      </span>
+      <Hint focusable label={disabledReason}>
+        <span className={styles.toggleDisabledWrap}>{control}</span>
+      </Hint>
     );
   }
   return control;
@@ -95,7 +99,7 @@ export function Pagination({
 
 export function TableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div role="status" aria-label="Loading feature flags">
+    <div role="status" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className={styles.skeletonRow} aria-hidden="true" />
       ))}
@@ -106,7 +110,7 @@ export function TableSkeleton({ rows = 6 }: { rows?: number }) {
 export function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className={styles.stateCard} role="alert">
-      <h3>Couldn&apos;t load feature flags.</h3>
+      <h3>Couldn&apos;t load this page</h3>
       <p>{message}</p>
       <button type="button" className={styles.primaryButton} onClick={onRetry}>
         Try again

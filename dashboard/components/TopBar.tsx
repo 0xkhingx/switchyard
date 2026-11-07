@@ -1,8 +1,18 @@
 "use client";
 
 import type { Env, Project } from "@/lib/api";
-import { LockIcon, MenuIcon } from "./icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LockIcon } from "./icons";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { SelectMenu } from "./SelectMenu";
 import styles from "./TopBar.module.css";
+import { Hint } from "@/components/ui/tooltip";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -19,7 +29,6 @@ export function TopBar({
   envKey,
   onEnvChange,
   userInitials,
-  onMenu,
   showEnv = true,
 }: {
   projects: Project[];
@@ -29,70 +38,64 @@ export function TopBar({
   envKey: string;
   onEnvChange: (key: string) => void;
   userInitials: string;
-  onMenu: () => void;
   showEnv?: boolean;
 }) {
   const env = envs.find((e) => e.key === envKey);
   return (
     <header className={styles.bar}>
-      <button type="button" className={styles.hamburger} onClick={onMenu} aria-label="Open navigation">
-        <MenuIcon size={20} />
-      </button>
-      <div className={styles.selectors}>
-        <label className={styles.selectWrap}>
-          <span className={styles.selectLabel}>Project</span>
-          <select
-            className={styles.select}
-            value={projectKey}
-            onChange={(e) => onProjectChange(e.target.value)}
-            aria-label="Project"
-          >
-            {projects.map((p) => (
-              <option key={p.key} value={p.key}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <SidebarTrigger className={styles.sidebarTrigger} aria-label="Toggle sidebar" />
+      <Separator orientation="vertical" className="mr-1 data-vertical:h-4 data-vertical:self-center" />
+      <nav className={styles.selectors} aria-label="Context">
+        <SelectMenu
+          variant="ghost"
+          ariaLabel="Project"
+          className={styles.select}
+          value={projectKey}
+          onChange={onProjectChange}
+          options={projects.map((p) => ({
+            value: p.key,
+            label: p.name,
+            hint: <span className="mono">{p.key}</span>,
+          }))}
+        />
         {showEnv && (
-        <label className={styles.selectWrap}>
-          <span className={styles.selectLabel}>Environment</span>
-          <span className={styles.envSelectRow}>
-            {env && <span className={styles.dot} aria-hidden="true" />}
-            <select
+          <>
+            <span className={styles.sep} aria-hidden="true">
+              /
+            </span>
+            <SelectMenu
+              variant="ghost"
+              ariaLabel="Environment"
               className={styles.select}
               value={envKey}
-              onChange={(e) => onEnvChange(e.target.value)}
-              aria-label="Environment"
-            >
-              {envs.map((e) => (
-                <option key={e.key} value={e.key}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
+              onChange={onEnvChange}
+              options={envs.map((e) => ({
+                value: e.key,
+                label: e.name,
+                icon: <span className="sy-dot" data-tone={e.protected ? "warning" : undefined} aria-hidden="true" />,
+                hint: e.protected ? "Protected" : undefined,
+              }))}
+            />
             {env?.protected && (
-              <span className={styles.lock} title="Protected environment" aria-label="Protected environment">
-                <LockIcon size={14} />
+              <Hint label="Changes in this environment are restricted by role" side="bottom">
+              <span className={styles.lock}>
+                <LockIcon size={13} />
+                <span>Protected</span>
               </span>
+              </Hint>
             )}
-          </span>
-        </label>
+          </>
         )}
-      </div>
+      </nav>
       <div className={styles.right}>
-        <button type="button" className={styles.kbd} title="Command palette (coming soon)" disabled>
-          ⌘ K
-        </button>
-        <button
-          type="button"
-          className={styles.userAvatar}
-          title="Sign out"
-          aria-label="Sign out"
-          onClick={() => void signOut()}
-        >
-          {userInitials}
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger className={styles.userAvatar} aria-label="Account menu">
+            {userInitials}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-40">
+            <DropdownMenuItem onClick={() => void signOut()}>Sign out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

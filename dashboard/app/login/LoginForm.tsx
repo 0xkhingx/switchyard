@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { EyeClosedIcon, EyeIcon } from "@/components/icons";
 import styles from "./login.module.css";
 
@@ -50,6 +53,17 @@ export function LoginForm() {
       // Any failure reads the same: never reveal whether the email exists.
       // The password is cleared; the email is preserved for retry.
       setPassword("");
+      if (res.status === 429) {
+        // Server throttles repeated failures per IP and per email.
+        const secs = Number(res.headers.get("retry-after"));
+        const mins = Number.isFinite(secs) && secs > 0 ? Math.ceil(secs / 60) : null;
+        setFormError(
+          mins
+            ? `Too many sign-in attempts. Try again in ${mins} minute${mins === 1 ? "" : "s"}.`
+            : "Too many sign-in attempts. Wait a few minutes and try again.",
+        );
+        return;
+      }
       setFormError(
         res.status === 401
           ? "Incorrect email or password."
@@ -65,17 +79,14 @@ export function LoginForm() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate={false}>
-      {formError && (
-        <p className={styles.formError} role="alert">
-          {formError}
-        </p>
-      )}
+      {/* Always-mounted live region; the message is inserted on failure. */}
+      <div role="alert">{formError && <p className={styles.formError}>{formError}</p>}</div>
 
       <div className={styles.field}>
-        <label className={styles.label} htmlFor="login-email">
+        <Label className={styles.label} htmlFor="login-email">
           Email
-        </label>
-        <input
+        </Label>
+        <Input
           id="login-email"
           className={styles.input}
           type="email"
@@ -97,11 +108,11 @@ export function LoginForm() {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label} htmlFor="login-password">
+        <Label className={styles.label} htmlFor="login-password">
           Password
-        </label>
+        </Label>
         <div className={styles.passwordWrap}>
-          <input
+          <Input
             id="login-password"
             className={styles.input}
             type={showPassword ? "text" : "password"}
@@ -113,20 +124,18 @@ export function LoginForm() {
             aria-describedby={passwordError ? "login-password-error" : undefined}
             required
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             className={styles.eyeButton}
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Hide password" : "Show password"}
             aria-pressed={showPassword}
             tabIndex={0}
           >
-            {showPassword ? (
-              <EyeClosedIcon size={20} />
-            ) : (
-              <EyeIcon size={20} />
-            )}
-          </button>
+            {showPassword ? <EyeClosedIcon /> : <EyeIcon />}
+          </Button>
         </div>
         {passwordError && (
           <p className={styles.fieldError} id="login-password-error">
@@ -135,9 +144,9 @@ export function LoginForm() {
         )}
       </div>
 
-      <button type="submit" className={styles.submit} disabled={submitting} aria-busy={submitting}>
+      <Button type="submit" className={styles.submit} disabled={submitting} aria-busy={submitting}>
         {submitting ? "Signing in…" : "Sign in"}
-      </button>
+      </Button>
     </form>
   );
 }

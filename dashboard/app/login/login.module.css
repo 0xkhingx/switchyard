@@ -1,25 +1,16 @@
+/* Full-bleed split: form on the canvas, artwork as an inset panel. */
 .page {
-  height: 100vh;
-  height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 12px;
+  background: var(--bg);
 }
 
 .card {
-  width: 100%;
-  max-width: 1200px;
-  height: min(800px, calc(100vh - 48px));
-  max-height: calc(100vh - 48px);
-  min-height: 0;
+  min-height: calc(100dvh - 24px);
   display: grid;
-  grid-template-columns: 46% 54%;
-  background: #fff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 24px 64px -24px rgba(7, 26, 51, 0.25);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 12px;
 }
 
 /* ---- Left: form side ---- */
@@ -27,109 +18,104 @@
 .formSide {
   display: flex;
   align-items: center;
-  padding: 60px;
+  padding: 48px 32px;
   min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .formInner {
   width: 100%;
-  max-width: 400px;
+  max-width: 360px;
   margin: 0 auto;
 }
 
 .logo {
-  height: 56px;
+  height: 32px;
   width: auto;
   display: block;
 }
 
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: brightness(0) invert(0.93);
+  }
+}
+
 .heading {
-  margin: 28px 0 0;
-  font-size: 28px;
+  margin: 40px 0 0;
+  font-size: 24px;
   line-height: 1.25;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
 }
 
 .sub {
-  margin: 10px 0 0;
-  font-size: 15px;
+  margin: 8px 0 0;
+  font-size: 14px;
   line-height: 1.55;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
 .form {
   margin-top: 28px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+}
+
+/* Empty live region stays mounted but takes no flex slot (no stray gap). */
+.form > [role="alert"]:empty {
+  position: absolute;
 }
 
 .formError {
   margin: 0;
-  padding: 12px 14px;
-  font-size: 14px;
+  padding: 10px 12px;
+  font-size: 13.5px;
   line-height: 1.5;
-  color: var(--error);
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent);
+  border-radius: var(--radius-control);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
 }
 
+/* Sizing/positioning only: shadcn Input owns border, background and focus. */
 .input {
-  height: 48px;
-  width: 100%;
-  padding: 0 14px;
-  font-size: 15px;
-  color: var(--navy);
-  background: #fff;
-  border: 1.5px solid var(--border);
-  border-radius: 11px;
-  outline: none;
-  transition: border-color 175ms ease, box-shadow 175ms ease;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+  background: var(--surface);
 }
 
-.input::placeholder {
-  color: #75849a;
+@media (max-width: 719px) {
+  .input {
+    font-size: 16px;
+  }
 }
 
 /* Browsers paint autofilled fields pale blue, which reads as disabled.
-   Keep our own white field + border while leaving the manager functional. */
+   Keep our own surface + border while leaving the manager functional. */
 .input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 100px #fff inset;
-  -webkit-text-fill-color: var(--navy);
-  caret-color: var(--navy);
+  -webkit-box-shadow: 0 0 0 100px var(--surface) inset;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
 }
 
-.input:hover {
-  border-color: #b9c7d8;
-}
-
-.input:focus-visible {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18);
-}
-
-.input[aria-invalid="true"] {
-  border-color: var(--error);
-}
-
-.input[aria-invalid="true"]:focus-visible {
-  box-shadow: 0 0 0 3px rgba(200, 30, 30, 0.15);
+.input:hover:not(:focus-visible) {
+  border-color: color-mix(in oklab, var(--text) 25%, var(--border-strong));
 }
 
 .passwordWrap {
@@ -137,96 +123,55 @@
 }
 
 .passwordWrap .input {
-  padding-right: 48px;
+  padding-right: 44px;
 }
 
+/* Position only: shadcn icon Button owns the visuals. */
 .eyeButton {
   position: absolute;
-  right: 6px;
+  right: 4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 175ms ease, background-color 175ms ease;
-}
-
-.eyeButton:hover {
-  color: var(--navy);
-  background: #eef3f8;
-}
-
-.eyeButton:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  color: var(--navy);
+  color: var(--text-muted);
 }
 
 .fieldError {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: var(--error);
+  color: var(--danger);
 }
 
+/* Sizing only: shadcn Button owns colors, hover, press and disabled. */
 .submit {
-  height: 48px;
+  height: 40px;
   width: 100%;
-  margin-top: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--accent-fill);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 175ms ease, box-shadow 175ms ease, transform 100ms ease;
-}
-
-.submit:hover:not(:disabled) {
-  background: var(--accent-fill-hover);
-}
-
-.submit:active:not(:disabled) {
-  background: var(--accent-pressed);
-  transform: scale(0.98);
-}
-
-.submit:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-.submit:disabled {
-  background: #93bcfb;
-  cursor: not-allowed;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .divider {
   margin: 28px 0 0;
   border: none;
-  border-top: 1px solid #dbe4ee;
+  border-top: 1px solid var(--border);
 }
 
 .helper {
   margin: 16px 0 0;
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.6;
-  color: #475569;
+  color: var(--text-muted);
 }
 
 /* ---- Right: art side ---- */
 
 .artSide {
   position: relative;
-  background: var(--dark-navy) url("/rail-panel.png") center / cover no-repeat;
+  /* The artwork is a fixed navy scene in both themes. */
+  background: #041224 url("/rail-panel.png") center / cover no-repeat;
+  border-radius: 16px;
+  overflow: hidden;
   min-height: 100%;
 }
 
@@ -235,56 +180,39 @@
   content: "";
   position: absolute;
   inset: auto 0 0 0;
-  height: 42%;
-  background: linear-gradient(to top, rgba(4, 18, 36, 0.62), transparent);
+  height: 45%;
+  background: linear-gradient(to top, rgb(4 18 36 / 0.7), transparent);
 }
 
 .artCopy {
   position: absolute;
-  left: 44px;
-  right: 44px;
-  bottom: 44px;
+  left: 40px;
+  right: 40px;
+  bottom: 40px;
   z-index: 1;
 }
 
 .artHeading {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #fff;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #ffffff;
 }
 
 .artBody {
-  margin: 12px 0 0;
-  font-size: 16px;
+  margin: 10px 0 0;
+  font-size: 15px;
   line-height: 1.6;
-  color: #b9cdf2;
+  color: rgb(255 255 255 / 0.72);
 }
 
 /* ---- Responsive ---- */
 
-@media (min-width: 900px) {
-  /* Optical nudge: the group reads better sitting a touch above
-     mathematical center once the logo anchors the top. */
-  .formInner {
-    transform: translateY(-14px);
-  }
-}
-
 @media (max-width: 899px) {
-  .page {
-    height: auto;
-    min-height: 100dvh;
-    overflow: visible;
-  }
-
   .card {
     grid-template-columns: 1fr;
-    height: auto;
-    max-height: none;
-    max-width: 480px;
   }
 
   .artSide {
@@ -292,14 +220,11 @@
   }
 
   .formSide {
-    padding: 32px 24px;
-  }
-
-  .logo {
-    height: 38px;
+    padding: 32px 12px;
   }
 
   .heading {
-    font-size: 24px;
+    margin-top: 32px;
+    font-size: 22px;
   }
 }

@@ -17,11 +17,13 @@ import {
   NavArrowDown as NavArrowDownBase,
   NavArrowLeft as NavArrowLeftBase,
   NavArrowRight as NavArrowRightBase,
+  NavArrowUp as NavArrowUpBase,
   Plus as PlusBase,
   Refresh as RefreshBase,
   Search as SearchBase,
   Settings as SettingsBase,
   ShieldCheck as ShieldCheckBase,
+  SidebarCollapse as SidebarCollapseBase,
   Trash as TrashBase,
   TriangleFlag as TriangleFlagBase,
   User as UserBase,
@@ -57,11 +59,13 @@ export const MoreHorizIcon = make(MoreHorizBase);
 export const NavArrowDownIcon = make(NavArrowDownBase);
 export const NavArrowLeftIcon = make(NavArrowLeftBase);
 export const NavArrowRightIcon = make(NavArrowRightBase);
+export const NavArrowUpIcon = make(NavArrowUpBase);
 export const PlusIcon = make(PlusBase);
 export const RefreshIcon = make(RefreshBase);
 export const SearchIcon = make(SearchBase);
 export const SettingsIcon = make(SettingsBase);
 export const ShieldCheckIcon = make(ShieldCheckBase);
+export const SidebarCollapseIcon = make(SidebarCollapseBase);
 export const TrashIcon = make(TrashBase);
 export const TriangleFlagIcon = make(TriangleFlagBase);
 export const UserIcon = make(UserBase);

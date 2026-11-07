@@ -1,98 +1,36 @@
-.scrim {
-  display: none;
-}
-
-.sidebar {
-  width: var(--sidebar-w);
-  flex: 0 0 var(--sidebar-w);
-  min-height: 100vh;
-  min-height: 100dvh;
-  position: sticky;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--navy);
-  color: #dbe6f5;
-  padding: 20px 14px 16px;
-}
+/* Layout, states and motion come from components/ui/sidebar.tsx. */
 
 .brand {
-  padding: 4px 10px 18px;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 8px;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  outline: none;
+  transition: padding 200ms linear;
+}
+
+.brand:focus-visible {
+  box-shadow: var(--focus-ring);
 }
 
 .brandLogo {
-  /* The lockup artwork is dark navy; invert to white for the dark sidebar. */
-  filter: brightness(0) invert(1);
-  height: 38px;
+  height: 26px;
   width: auto;
+  max-width: none;
   display: block;
-  max-width: 100%;
 }
 
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* Collapsed to the icon rail: show only the mark at the left of the lockup. */
+:global([data-collapsible="icon"]) .brand {
+  width: 32px;
+  padding: 0 4px;
 }
 
-.item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  font-size: 14.5px;
-  font-weight: 500;
-  color: #9db1cc;
-  text-decoration: none;
-  border-radius: var(--radius-control);
-  border-left: 3px solid transparent;
-  transition: background-color 175ms ease, color 175ms ease;
-}
-
-.item:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #fff;
-}
-
-.item:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.item.active {
-  background: rgba(22, 119, 255, 0.22);
-  border-left-color: var(--accent);
-  color: #fff;
-}
-
-@media (max-width: 1023px) {
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 40;
-    transform: translateX(-105%);
-    transition: transform 200ms ease;
-  }
-
-  .sidebar.open {
-    transform: none;
-  }
-
-  .scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    background: rgba(4, 18, 36, 0.5);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 200ms ease;
-  }
-
-  .scrimOpen {
-    opacity: 1;
-    pointer-events: auto;
+@media (prefers-color-scheme: dark) {
+  /* The lockup artwork is dark navy; render it light on dark surfaces. */
+  .brandLogo {
+    filter: brightness(0) invert(0.93);
   }
 }
