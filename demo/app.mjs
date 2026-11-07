@@ -16,10 +16,25 @@ const log = document.getElementById("log");
 
 const engineHolder = { engine: null };
 
-let sdkKey = new URLSearchParams(location.search).get("key") || "";
+// The key comes from the form field and is remembered for this tab only
+// (sessionStorage), never from the URL, so it does not leak via history,
+// bookmarks, Referer headers or server logs.
+const KEY_STORAGE = "switchyard-demo-sdk-key";
+
+function loadKey() {
+  try { return sessionStorage.getItem(KEY_STORAGE) || ""; } catch { return ""; }
+}
+
+function saveKey(key) {
+  try { sessionStorage.setItem(KEY_STORAGE, key); } catch { /* storage unavailable */ }
+}
+
+let sdkKey = loadKey();
 let etag = null;
 let timer = null;
 let version = null;
+// Bumped on every Connect so a poll loop from an earlier key stops itself.
+let generation = 0;
 
 if (sdkKey) keyInput.value = sdkKey;
 
@@ -62,10 +77,12 @@ function render() {
 async function tick() {
   const engine = engineHolder.engine;
   if (!engine) return;
+  const gen = generation;
   try {
     const headers = { Authorization: `Bearer ${sdkKey}` };
     if (etag) headers["If-None-Match"] = etag;
     const res = await fetch(`${API_URL}/sdk/v1/config`, { headers });
+    if (gen !== generation) return; // superseded by a newer Connect
     if (res.status === 304) {
       setStatus(true, `Connected · config v${version} · polling every ${POLL_MS / 1000}s`);
       return;
@@ -83,18 +100,29 @@ async function tick() {
   }
 }
 
+// Self-scheduling loop: the next poll is queued only after the current one
+// finishes, so slow requests never overlap.
+async function pollLoop(gen) {
+  await tick();
+  if (gen !== generation) return;
+  timer = setTimeout(() => pollLoop(gen), POLL_MS);
+}
+
 connectBtn.addEventListener("click", async () => {
   sdkKey = keyInput.value.trim();
   if (!sdkKey) return;
-  clearInterval(timer);
+  saveKey(sdkKey);
+  clearTimeout(timer);
+  const gen = ++generation;
   etag = null;
+  version = null;
   try {
     await init();
   } catch (e) {
     setStatus(false, `Could not load the evaluator (${e.message}).`);
     return;
   }
+  if (gen !== generation) return;
   engineHolder.engine = new Engine();
-  await tick();
-  timer = setInterval(tick, POLL_MS);
+  pollLoop(gen);
 });

@@ -60,6 +60,107 @@
         "fallthrough": {
           "fixed": "Spring sale"
         }
+      },
+      "typed": {
+        "type": "string",
+        "enabled": true,
+        "offValue": "off",
+        "rules": [
+          {
+            "id": "age30",
+            "conditions": [
+              {
+                "attribute": "age",
+                "op": "equals",
+                "values": [
+                  30
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": "age30"
+            }
+          },
+          {
+            "id": "kg72",
+            "conditions": [
+              {
+                "attribute": "kg",
+                "op": "in",
+                "values": [
+                  71.5,
+                  72.0
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": "kg72"
+            }
+          },
+          {
+            "id": "one",
+            "conditions": [
+              {
+                "attribute": "n",
+                "op": "equals",
+                "values": [
+                  1
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": "one"
+            }
+          },
+          {
+            "id": "beta",
+            "conditions": [
+              {
+                "attribute": "beta",
+                "op": "equals",
+                "values": [
+                  true
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": "beta"
+            }
+          },
+          {
+            "id": "notgold",
+            "conditions": [
+              {
+                "attribute": "tier",
+                "op": "notEquals",
+                "values": [
+                  "gold"
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": "notgold"
+            }
+          },
+          {
+            "id": "notin",
+            "conditions": [
+              {
+                "attribute": "region",
+                "op": "notIn",
+                "values": [
+                  "eu"
+                ]
+              }
+            ],
+            "serve": {
+              "fixed": "notin"
+            }
+          }
+        ],
+        "fallthrough": {
+          "fixed": "default"
+        }
       }
     }
   },
@@ -159,6 +260,225 @@
       "expected": {
         "value": null,
         "reason": "FLAG_NOT_FOUND",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "age": 30.0
+        }
+      },
+      "expected": {
+        "value": "age30",
+        "reason": "RULE_MATCH",
+        "ruleId": "age30"
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "age": 30
+        }
+      },
+      "expected": {
+        "value": "age30",
+        "reason": "RULE_MATCH",
+        "ruleId": "age30"
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "age": 30.5
+        }
+      },
+      "expected": {
+        "value": "default",
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "kg": 72
+        }
+      },
+      "expected": {
+        "value": "kg72",
+        "reason": "RULE_MATCH",
+        "ruleId": "kg72"
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "n": 1.0
+        }
+      },
+      "expected": {
+        "value": "one",
+        "reason": "RULE_MATCH",
+        "ruleId": "one"
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "n": true
+        }
+      },
+      "expected": {
+        "value": "default",
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "beta": 1
+        }
+      },
+      "expected": {
+        "value": "default",
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "beta": true
+        }
+      },
+      "expected": {
+        "value": "beta",
+        "reason": "RULE_MATCH",
+        "ruleId": "beta"
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "age": "30"
+        }
+      },
+      "expected": {
+        "value": "default",
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "tier": null,
+          "region": null
+        }
+      },
+      "expected": {
+        "value": "default",
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "tier": "silver"
+        }
+      },
+      "expected": {
+        "value": "notgold",
+        "reason": "RULE_MATCH",
+        "ruleId": "notgold"
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1",
+        "attributes": {
+          "tier": null,
+          "region": "us"
+        }
+      },
+      "expected": {
+        "value": "notin",
+        "reason": "RULE_MATCH",
+        "ruleId": "notin"
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-2",
+        "attributes": {
+          "country": null,
+          "plan": "pro"
+        }
+      },
+      "expected": {
+        "value": true,
+        "reason": "RULE_MATCH",
+        "ruleId": "r2"
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-4"
+      },
+      "expected": {
+        "value": false,
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "typed",
+      "context": {
+        "key": "u-1"
+      },
+      "expected": {
+        "value": "default",
+        "reason": "FALLTHROUGH",
+        "ruleId": null
+      }
+    },
+    {
+      "flag": "new-checkout",
+      "context": {
+        "key": "u-4",
+        "attributes": null
+      },
+      "expected": {
+        "value": false,
+        "reason": "FALLTHROUGH",
         "ruleId": null
       }
     }

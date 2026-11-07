@@ -145,7 +145,9 @@ pub struct FlagConfig {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct EnvConfig { pub version: u64, pub flags: HashMap<String, FlagConfig> }
 
-pub struct Context { pub key: String, pub attributes: HashMap<String, AttrValue> }
+// `attributes` defaults to {} when absent or null; null attribute values are
+// dropped on deserialize (see 3.3), so they never make a context invalid.
+pub struct Context { pub key: String, #[serde(default)] pub attributes: HashMap<String, AttrValue> }
 
 #[derive(Serialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -187,7 +189,10 @@ serve(s, ...):
 - A rule with no conditions matches everyone.
 - The special attribute name `key` refers to `context.key`.
 - **A missing attribute never matches**, for every operator including `notEquals` and `notIn`. This avoids surprise matches for users you know nothing about.
-- Equality is type-strict: the number `1` does not equal the string `"1"`.
+- An attribute whose value is `null` is treated exactly like a missing attribute (it never matches). A null value never makes the context itself invalid.
+- A context without an `attributes` field (or with `attributes: null`) is treated as having no attributes.
+- Equality is type-strict across kinds: the number `1` does not equal the string `"1"`, and the boolean `true` does not equal the number `1`.
+- Numbers compare numerically: `30` equals `30.0` (JSON does not distinguish integer from float).
 - String operators (`contains`, `startsWith`, `endsWith`) are case-sensitive and match only when the attribute is a string.
 - `equals`, `notEquals`, `contains`, `startsWith`, `endsWith` use `values[0]`. `in` and `notIn` check the whole list.
 
@@ -259,6 +264,8 @@ Generated with `spec/reference_eval.py`, which is an independent implementation.
 | `new-checkout` | key `""`, country `US`, plan `pro` | `false`, `ERROR` (rollout with no key) |
 | `banner-text` | key `u-1` | `"Welcome"`, `OFF` |
 | `nope` | key `u-1` | `null`, `FLAG_NOT_FOUND` |
+
+`spec/vectors/evaluations.json` additionally carries a `typed` flag and cases covering numeric equality across `30`/`30.0`, `true` vs `1`, null attribute values (including under `notEquals`/`notIn`), and contexts with no `attributes` field.
 
 **Distribution check.** For flag `new-checkout`, 100 000 keys `user-0` to `user-99999`, a 2000 bp bucket: the reference run gives 19.83%. The test requires 19% to 21%, and requires that for every key in the first 2000, raising the weight to 3000 keeps it included.
 
@@ -528,3 +535,4 @@ Benchmark `evaluate` with `criterion` (native) and a simple loop in Node (WASM).
 | WASM boundary | JSON strings | `serde-wasm-bindgen` | Simpler and more robust for v1 |
 | Shared types | `ts-rs` generated | Hand-written TS types | No drift between Rust and TypeScript |
 | Missing attribute | Never matches | Treat as null | No surprise matches for unknown users |
+| Null attribute value | Same as missing | Reject the context | One null field must not turn every flag into `ERROR` in the SDK |

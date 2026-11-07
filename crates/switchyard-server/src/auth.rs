@@ -5,16 +5,16 @@
 //! - SDK keys: `sy_` + 32 random bytes base64url, shown once, stored as SHA-256.
 
 use argon2::{
-    Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
 };
 use axum::{
     async_trait,
     extract::FromRequestParts,
-    http::{HeaderMap, StatusCode, header},
+    http::{header, HeaderMap, StatusCode},
 };
-use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
-use rand::{RngCore, rngs::OsRng};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use rand::{rngs::OsRng, RngCore};
 use sha2::{Digest, Sha256};
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -52,6 +52,18 @@ pub fn verify_password(hash: &str, password: &str) -> bool {
     Argon2::default()
         .verify_password(password.as_bytes(), &parsed)
         .is_ok()
+}
+
+/// A real argon2id hash of a throwaway password, computed once. Login verifies
+/// against it when the email is unknown, so unknown and known emails cost the
+/// same argon2 work and response timing does not reveal which emails exist.
+pub fn dummy_hash() -> &'static str {
+    static DUMMY: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    DUMMY.get_or_init(|| {
+        let mut pw = [0u8; 16];
+        OsRng.fill_bytes(&mut pw);
+        hash_password(&URL_SAFE_NO_PAD.encode(pw)).expect("argon2 hashing of dummy password")
+    })
 }
 
 /// 32 random bytes, base64url. Used for session tokens and (with `sy_` prefix) SDK keys.
@@ -92,7 +104,9 @@ pub fn session_cookie_value(headers: &HeaderMap) -> Option<String> {
 }
 
 pub fn set_session_cookie(secure: bool, token: &str) -> String {
-    let mut c = format!("{SESSION_COOKIE}={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age={SESSION_TTL_SECS}");
+    let mut c = format!(
+        "{SESSION_COOKIE}={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age={SESSION_TTL_SECS}"
+    );
     if secure {
         c.push_str("; Secure");
     }
@@ -125,7 +139,8 @@ impl FromRequestParts<AppState> for AuthUser {
         parts: &mut axum::http::request::Parts,
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
-        let token = session_cookie_value(&parts.headers).ok_or((StatusCode::UNAUTHORIZED, "unauthorized"))?;
+        let token = session_cookie_value(&parts.headers)
+            .ok_or((StatusCode::UNAUTHORIZED, "unauthorized"))?;
         match user_for_token(&state.pool, &token)
             .await
             .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "internal error"))?
@@ -164,7 +179,11 @@ impl FromRequestParts<AppState> for SdkCtx {
         .await
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "internal error"))?;
         match row {
-            Some((key_id, environment_id, project_id)) => Ok(SdkCtx { key_id, environment_id, project_id }),
+            Some((key_id, environment_id, project_id)) => Ok(SdkCtx {
+                key_id,
+                environment_id,
+                project_id,
+            }),
             None => Err((StatusCode::UNAUTHORIZED, "unauthorized")),
         }
     }
@@ -187,7 +206,10 @@ mod tests {
     #[test]
     fn cookie_parsing() {
         let mut h = HeaderMap::new();
-        h.insert(header::COOKIE, "a=1; sy_session=tok123; b=2".parse().unwrap());
+        h.insert(
+            header::COOKIE,
+            "a=1; sy_session=tok123; b=2".parse().unwrap(),
+        );
         assert_eq!(session_cookie_value(&h), Some("tok123".to_string()));
         let empty = HeaderMap::new();
         assert_eq!(session_cookie_value(&empty), None);
@@ -200,5 +222,15 @@ mod tests {
         assert!(!verify_password(&hash, "wrong"));
         // Emails are stored lowercased at the call site; hashing is case-sensitive.
         assert!(!verify_password(&hash, "Correct Horse"));
+    }
+
+    #[test]
+    fn dummy_hash_is_a_real_argon2_hash() {
+        let h = dummy_hash();
+        assert!(h.starts_with("$argon2"));
+        assert!(!verify_password(h, ""));
+        assert!(!verify_password(h, "password123"));
+        // Cached: same value on every call.
+        assert_eq!(h, dummy_hash());
     }
 }

@@ -9,3 +9,5 @@ sdk/js/pkg-web/
 __pycache__/
 .sqlx/
 dist/
+/.local-postgres/
+*.tsbuildinfo

@@ -92,10 +92,27 @@ pub struct EnvConfig {
 }
 
 /// What the app passes in: a user key plus string-keyed attributes.
+///
+/// `attributes` may be omitted (or `null`) and defaults to `{}`. An attribute
+/// whose value is `null` is dropped on deserialize, so it behaves exactly like
+/// a missing attribute (never matches) instead of failing the whole context.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Context {
     pub key: String,
+    #[serde(default, deserialize_with = "deserialize_attributes")]
     pub attributes: HashMap<String, AttrValue>,
+}
+
+fn deserialize_attributes<'de, D>(d: D) -> Result<HashMap<String, AttrValue>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let raw: Option<HashMap<String, Option<AttrValue>>> = Option::deserialize(d)?;
+    Ok(raw
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|(k, v)| v.map(|v| (k, v)))
+        .collect())
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq)]
@@ -209,7 +226,14 @@ pub fn evaluate(config: &EnvConfig, flag_key: &str, ctx: &Context) -> Evaluation
             );
         }
     }
-    serve(flag, flag_key, &flag.fallthrough, ctx, Reason::Fallthrough, None)
+    serve(
+        flag,
+        flag_key,
+        &flag.fallthrough,
+        ctx,
+        Reason::Fallthrough,
+        None,
+    )
 }
 
 fn serve(
@@ -273,7 +297,8 @@ fn cond_match(cond: &Condition, ctx: &Context) -> bool {
     }
     match cond.op {
         // Equality is type-strict via the derived PartialEq on the enum:
-        // Bool(1-ish) never equals Str("1") because the variants differ.
+        // Bool(true) never equals Num(1.0) or Str("1") because the variants
+        // differ. Numbers compare numerically (JSON 30 and 30.0 are both Num).
         Op::Equals => cond.values.first().map(|v| v == val).unwrap_or(false),
         Op::NotEquals => cond.values.first().map(|v| v != val).unwrap_or(false),
         Op::In => cond.values.iter().any(|v| v == val),
@@ -284,15 +309,11 @@ fn cond_match(cond: &Condition, ctx: &Context) -> bool {
             _ => false,
         },
         Op::StartsWith => match (val, cond.values.first()) {
-            (AttrValue::Str(hay), Some(AttrValue::Str(prefix))) => {
-                hay.starts_with(prefix.as_str())
-            }
+            (AttrValue::Str(hay), Some(AttrValue::Str(prefix))) => hay.starts_with(prefix.as_str()),
             _ => false,
         },
         Op::EndsWith => match (val, cond.values.first()) {
-            (AttrValue::Str(hay), Some(AttrValue::Str(suffix))) => {
-                hay.ends_with(suffix.as_str())
-            }
+            (AttrValue::Str(hay), Some(AttrValue::Str(suffix))) => hay.ends_with(suffix.as_str()),
             _ => false,
         },
     }
@@ -329,12 +350,7 @@ fn variant_matches(kind: FlagType, v: &Variant) -> bool {
     )
 }
 
-fn check_variant(
-    out: &mut Vec<ValidationError>,
-    path: String,
-    kind: FlagType,
-    v: &Variant,
-) {
+fn check_variant(out: &mut Vec<ValidationError>, path: String, kind: FlagType, v: &Variant) {
     if !variant_matches(kind, v) {
         out.push(ValidationError {
             path,
@@ -352,12 +368,7 @@ fn check_variant(
     }
 }
 
-fn check_serve(
-    out: &mut Vec<ValidationError>,
-    base: String,
-    kind: FlagType,
-    s: &Serve,
-) {
+fn check_serve(out: &mut Vec<ValidationError>, base: String, kind: FlagType, s: &Serve) {
     match s {
         Serve::Fixed(v) => check_variant(out, format!("{base}/fixed"), kind, v),
         Serve::Rollout(entries) => {
@@ -376,7 +387,8 @@ fn check_serve(
                         message: "weight must be 0 to 10000".to_string(),
                     });
                 }
-                total += e.weight;
+                // Saturate so huge weights can't wrap back to 10000 (or panic).
+                total = total.saturating_add(e.weight);
                 check_variant(out, format!("{base}/rollout/{i}/value"), kind, &e.value);
             }
             if total != 10_000 {
@@ -410,7 +422,7 @@ pub fn validate(config: &EnvConfig) -> Vec<ValidationError> {
         for (i, rule) in flag.rules.iter().enumerate() {
             let rbase = format!("{fbase}/rules/{i}");
             let id_len = rule.id.chars().count();
-            if id_len < 1 || id_len > 32 {
+            if !(1..=32).contains(&id_len) {
                 out.push(ValidationError {
                     path: format!("{rbase}/id"),
                     message: "rule id must be 1 to 32 characters".to_string(),
@@ -464,7 +476,12 @@ pub fn validate(config: &EnvConfig) -> Vec<ValidationError> {
             }
             check_serve(&mut out, format!("{rbase}/serve"), flag.kind, &rule.serve);
         }
-        check_variant(&mut out, format!("{fbase}/offValue"), flag.kind, &flag.off_value);
+        check_variant(
+            &mut out,
+            format!("{fbase}/offValue"),
+            flag.kind,
+            &flag.off_value,
+        );
         check_serve(
             &mut out,
             format!("{fbase}/fallthrough"),
@@ -662,8 +679,14 @@ mod tests {
         // ...but the same conditions match when the attribute is present.
         let pro = ctx("u-1", &[("plan", AttrValue::Str("pro".into()))]);
         assert!(cond_match(&cond(Op::Equals), &pro));
-        assert!(cond_match(&cond(Op::NotEquals), &ctx("u-1", &[("plan", AttrValue::Str("free".into()))])));
-        assert!(cond_match(&cond(Op::NotIn), &ctx("u-1", &[("plan", AttrValue::Str("free".into()))])));
+        assert!(cond_match(
+            &cond(Op::NotEquals),
+            &ctx("u-1", &[("plan", AttrValue::Str("free".into()))])
+        ));
+        assert!(cond_match(
+            &cond(Op::NotIn),
+            &ctx("u-1", &[("plan", AttrValue::Str("free".into()))])
+        ));
     }
 
     #[test]
@@ -691,15 +714,24 @@ mod tests {
             op: Op::Contains,
             values: vec![AttrValue::Str("Lag".into())],
         };
-        assert!(cond_match(&c, &ctx("u-1", &[("city", AttrValue::Str("Lagos".into()))])));
-        assert!(!cond_match(&c, &ctx("u-1", &[("city", AttrValue::Num(3.0))])));
+        assert!(cond_match(
+            &c,
+            &ctx("u-1", &[("city", AttrValue::Str("Lagos".into()))])
+        ));
+        assert!(!cond_match(
+            &c,
+            &ctx("u-1", &[("city", AttrValue::Num(3.0))])
+        ));
         // case-sensitive
         let c2 = Condition {
             attribute: "city".into(),
             op: Op::StartsWith,
             values: vec![AttrValue::Str("lag".into())],
         };
-        assert!(!cond_match(&c2, &ctx("u-1", &[("city", AttrValue::Str("Lagos".into()))])));
+        assert!(!cond_match(
+            &c2,
+            &ctx("u-1", &[("city", AttrValue::Str("Lagos".into()))])
+        ));
     }
 
     #[test]
@@ -754,12 +786,85 @@ mod tests {
         let errs = validate(&bad);
         let msgs: Vec<&str> = errs.iter().map(|e| e.message.as_str()).collect();
         assert!(msgs.iter().any(|m| m.contains("flag key")), "{msgs:?}");
-        assert!(msgs.iter().any(|m| m.contains("match the flag type")), "{msgs:?}");
+        assert!(
+            msgs.iter().any(|m| m.contains("match the flag type")),
+            "{msgs:?}"
+        );
         assert!(msgs.iter().any(|m| m.contains("unique")), "{msgs:?}");
-        assert!(msgs.iter().any(|m| m.contains("exactly 1 value")), "{msgs:?}");
-        assert!(msgs.iter().any(|m| m.contains("sum to exactly 10000")), "{msgs:?}");
+        assert!(
+            msgs.iter().any(|m| m.contains("exactly 1 value")),
+            "{msgs:?}"
+        );
+        assert!(
+            msgs.iter().any(|m| m.contains("sum to exactly 10000")),
+            "{msgs:?}"
+        );
         assert!(msgs.iter().any(|m| m.contains("string value")), "{msgs:?}");
         assert!(errs.iter().all(|e| e.path.starts_with("/flags/")));
+    }
+
+    #[test]
+    fn huge_weights_rejected_without_overflow() {
+        let cfg: EnvConfig = serde_json::from_value(serde_json::json!({
+            "version": 1,
+            "flags": {"f": {"type": "bool", "enabled": true, "offValue": false,
+                "rules": [],
+                // 4294967295 + 10001 wraps to 10000 under u32 wrapping add.
+                "fallthrough": {"rollout": [
+                    {"value": true, "weight": u32::MAX},
+                    {"value": false, "weight": 10_001}]}}}
+        }))
+        .unwrap();
+        let errs = validate(&cfg);
+        let msgs: Vec<&str> = errs.iter().map(|e| e.message.as_str()).collect();
+        assert!(
+            msgs.iter().any(|m| m.contains("sum to exactly 10000")),
+            "{msgs:?}"
+        );
+        assert!(msgs.iter().any(|m| m.contains("0 to 10000")), "{msgs:?}");
+    }
+
+    #[test]
+    fn numbers_compare_numerically() {
+        let c = Condition {
+            attribute: "age".into(),
+            op: Op::In,
+            values: serde_json::from_value(serde_json::json!([30, 2.5])).unwrap(),
+        };
+        let int_ctx: Context =
+            serde_json::from_value(serde_json::json!({"key": "u", "attributes": {"age": 30.0}}))
+                .unwrap();
+        assert!(cond_match(&c, &int_ctx));
+        let float_ctx: Context =
+            serde_json::from_value(serde_json::json!({"key": "u", "attributes": {"age": 30}}))
+                .unwrap();
+        assert!(cond_match(&c, &float_ctx));
+    }
+
+    #[test]
+    fn null_attribute_is_missing_and_attributes_default() {
+        let c: Context = serde_json::from_value(serde_json::json!({
+            "key": "u-1", "attributes": {"plan": null, "country": "NG"}
+        }))
+        .unwrap();
+        assert!(!c.attributes.contains_key("plan"));
+        assert_eq!(
+            c.attributes.get("country"),
+            Some(&AttrValue::Str("NG".into()))
+        );
+        let cond = |op| Condition {
+            attribute: "plan".into(),
+            op,
+            values: vec![AttrValue::Str("pro".into())],
+        };
+        for op in [Op::Equals, Op::NotEquals, Op::In, Op::NotIn] {
+            assert!(!cond_match(&cond(op), &c), "op {op:?} must not match null");
+        }
+        let no_attrs: Context = serde_json::from_value(serde_json::json!({"key": "u-1"})).unwrap();
+        assert!(no_attrs.attributes.is_empty());
+        let null_attrs: Context =
+            serde_json::from_value(serde_json::json!({"key": "u-1", "attributes": null})).unwrap();
+        assert!(null_attrs.attributes.is_empty());
     }
 
     #[test]
@@ -775,7 +880,7 @@ mod tests {
         // A 2000/8000 rollout partitions the whole 0..10000 bucket space.
         let mut inside = 0;
         for b in 0..10_000u32 {
-            let v = if b < 2000 { true } else { false };
+            let v = b < 2000;
             if v {
                 inside += 1;
             }
@@ -806,9 +911,7 @@ mod tests {
     #[test]
     fn json_vectors() {
         let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../spec/vectors");
-        let read = |name: &str| {
-            std::fs::read_to_string(format!("{dir}/{name}")).expect(name)
-        };
+        let read = |name: &str| std::fs::read_to_string(format!("{dir}/{name}")).expect(name);
 
         #[derive(Deserialize)]
         struct HashVec {
@@ -893,7 +996,10 @@ mod tests {
             }
         }
         let share = count as f64 / df.total as f64;
-        assert!((df.min_share..=df.max_share).contains(&share), "share {share}");
+        assert!(
+            (df.min_share..=df.max_share).contains(&share),
+            "share {share}"
+        );
         assert_eq!(violations, 0);
     }
 }

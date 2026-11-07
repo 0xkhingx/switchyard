@@ -33,7 +33,7 @@ test vectors both implementations must reproduce.
 ## Run in one command (per piece)
 
 ```powershell
-# Core: 13 tests (vectors, properties, validation)
+# Core: 16 tests (vectors, properties, validation)
 cargo test -p switchyard-core
 
 # All Rust tests (server DB flow skips without DATABASE_URL)
@@ -43,7 +43,7 @@ cargo test --workspace
 wasm-pack build crates/switchyard-wasm --target nodejs --out-dir ../../sdk/js/pkg-nodejs
 node ./sdk/js/parity.mjs
 
-# JS SDK: 5 behavior tests, zero dependencies
+# JS SDK: 9 behavior tests, zero dependencies
 node --test sdk/js/src/client.test.js
 
 # Server (needs Postgres; Docker or hosted e.g. Supabase/Neon)
@@ -52,6 +52,19 @@ $env:DATABASE_URL = "postgres://switchyard:switchyard@localhost:5432/switchyard"
 cargo run -p switchyard-server
 # first user: cargo run -p switchyard-server -- create-user --email you@x.com --password <8+ chars> --admin
 ```
+
+### Server configuration
+
+| Variable | Default | Notes |
+|---|---|---|
+| `DATABASE_URL` | (required) | Postgres; migrations run at startup. |
+| `DASHBOARD_ORIGIN` | `http://localhost:3000` | The one origin allowed to call `/api/*` with credentials. `/sdk/*` allows any origin (Bearer key, no cookies). |
+| `COOKIE_SECURE` | on if `DASHBOARD_ORIGIN` starts with `https://`, else off | Sets `Secure` on the session cookie. `true`/`1` or `false`/`0` overrides. Local `http://localhost` dev needs no change. |
+| `PORT` | `8080` | |
+
+Login is throttled to 10 failed attempts per 15 minutes per client IP and per
+email (429 with `Retry-After`). The counters live in process memory: they reset
+on restart and are not shared across replicas.
 
 ## SDK usage
 
@@ -96,9 +109,9 @@ traffic says so.
 
 ## Verify the cut line
 
-- [x] All vectors + property tests pass natively (`cargo test -p switchyard-core` → 13/13)
-- [x] Parity: WASM in Node identical on every vector (`parity.mjs` → 7/7)
-- [x] Server non-DB tests pass (5/5)
+- [x] All vectors + property tests pass natively (`cargo test -p switchyard-core` → 16/16)
+- [x] Parity: WASM in Node identical on every vector (`parity.mjs` → 23/23)
+- [x] Server non-DB tests pass (10/10)
 - [x] Server DB flow test passes against live Postgres (`db_tests::full_flow` on a Neon branch; also runs in CI)
 - [x] SDK keeps serving after the server is killed (tested)
 - [ ] Demo flips live from dashboard → M4
